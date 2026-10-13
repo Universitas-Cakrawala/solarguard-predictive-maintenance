@@ -1,0 +1,1 @@
+# solarguard-predictive-maintenance
