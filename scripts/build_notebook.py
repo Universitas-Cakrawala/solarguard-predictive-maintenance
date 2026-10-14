@@ -16,7 +16,7 @@ def code(s):
 
 md('''
 # SolarGuard
-## Weather-Conditioned Solar Output Estimation for Maintenance Triage
+## Estimasi Daya Surya Berdasarkan Kondisi Cuaca untuk Prioritas Inspeksi
 
 **Predictive Analytics — Cakrawala University | Kelompok 7**
 
@@ -26,7 +26,7 @@ md('''
 | Farisyah Aulia Hanum | 24120500027 | Anggota |
 | Sayyid Abdul Aziz Haidar | 24120500005 | Anggota |
 
-Laporan analitis ini mengikuti 13 section notebook pada brief dan `planning/PLAN.md`.
+Laporan analitis ini mengikuti 13 bagian notebook pada panduan tugas dan `planning/PLAN.md`.
 Bahasa penjelasan: Indonesia. Semua angka hasil di bawah dihitung dari empat CSV lokal,
 bukan hasil contoh. Jalankan **Restart Kernel / Runtime → Run All** dari folder proyek.
 Dependensi tercatat di `requirements.txt`; instalasi opsional dari terminal: `pip install -r requirements.txt`.
@@ -35,33 +35,34 @@ Notebook tidak mengunduh data atau membutuhkan kredensial saat dijalankan.
 **Status administratif:** pada 14 Oktober 2026, tim mengonfirmasi melalui percakapan
 bahwa dataset sudah terdaftar di s.id/listdatapred02, berbeda dari kelompok lain,
 dan bukan dataset UTS salah satu anggota. Ini konfirmasi tim, bukan verifikasi registry
-independen; simpan bukti entri bersama paket tugas. Kontribusi aktual setiap anggota
+secara independen; simpan bukti entri bersama paket tugas. Kontribusi aktual setiap anggota
 masih perlu dicatat. Identitas anggota bukan
 klaim bahwa masing-masing telah mengerjakan kode ini. Lihat `CONTRIBUTIONS.md`.
 ''')
 md('''
-## 1. Project overview
+## 1. Gambaran umum proyek
 
-**Tema:** Energy and Environment. **Stakeholder:** Solar Plant Operations Manager / COO.
-Output mentah inverter berubah bersama cuaca; membandingkan output tanpa kondisi cuaca
+**Tema:** Energi dan Lingkungan. **Pemangku kepentingan:** Manajer Operasional Pembangkit Surya / COO.
+Daya mentah inverter berubah bersama cuaca; membandingkan daya tanpa kondisi cuaca
 dapat menghasilkan prioritas inspeksi yang keliru. Kita menguji estimasi output yang
 diharapkan untuk mendukung pemeriksaan operator.
 
-**Predictive question:** Dengan sensor cuaca yang tersedia pada timestamp t, identitas
-plant/inverter, dan waktu, seberapa akurat DC_POWER pada t dapat diestimasi pada hari yang
+**Pertanyaan prediktif:** Dengan sensor cuaca yang tersedia pada waktu t, identitas
+pembangkit/inverter, dan waktu, seberapa akurat DC_POWER pada t dapat diestimasi pada hari yang
 lebih baru untuk inverter yang sudah dikenal?
 
-**Task:** regression. **Target:** DC_POWER, unit asli dataset (unit fisik belum terverifikasi).
-**Unit analisis:** satu inverter pada satu timestamp, nominal 15 menit. **Horizon:** 0;
-sensor cuaca t harus tersedia saat estimasi. Actual DC_POWER baru dipakai sesudah estimasi
-untuk menghitung gap. Ini tidak menguji forecast hari berikutnya, fault classification,
-lead time sebelum kegagalan, maupun transfer ke plant baru.
+**Jenis tugas:** regresi. **Target:** DC_POWER, satuan asli dataset (satuan fisik belum terverifikasi).
+**Unit analisis:** satu inverter pada satu waktu pengamatan, dengan interval nominal 15 menit.
+**Horizon prediksi:** 0; sensor cuaca t harus tersedia saat estimasi. DC_POWER aktual baru
+dipakai sesudah estimasi untuk menghitung selisih. Penelitian ini tidak menguji peramalan
+hari berikutnya, klasifikasi kerusakan, waktu peringatan sebelum kegagalan, maupun
+penerapan pada pembangkit baru.
 
-Tujuan SolarGuard adalah pilot triage inspeksi: output estimasi dibandingkan aktual,
-kemudian operator memeriksa gap persisten. Tanpa maintenance/failure logs, gap belum
-membuktikan kerusakan atau manfaat ekonomi. Data publik berisi identitas alat, tanpa
-identitas pribadi yang terlihat; risiko operasi berupa salah prioritas dan false alerts
-tetap harus ditangani melalui human review.
+Tujuan SolarGuard adalah uji coba penentuan prioritas inspeksi: daya estimasi dibandingkan
+dengan daya aktual, kemudian operator memeriksa selisih yang menetap. Tanpa catatan
+pemeliharaan dan kegagalan, selisih belum membuktikan kerusakan atau manfaat ekonomi.
+Data publik berisi identitas alat, tanpa identitas pribadi yang terlihat; risiko salah
+prioritas dan peringatan keliru tetap harus ditangani melalui pemeriksaan manusia.
 ''')
 code('''
 from pathlib import Path
@@ -133,37 +134,38 @@ display(pd.Series({'Python': sys.version.split()[0], 'OS': platform.platform(),
                    'CPUs available': os.cpu_count(), 'threads used': WORKERS, **environment}))
 ''')
 md('''
-## 2. Dataset description
+## 2. Deskripsi dataset
 
 Sumber: [Solar Power Generation Data](https://www.kaggle.com/datasets/anikannal/solar-power-generation-data),
-uploader Ani Kannal, **versi 1** (rilis 18 Agustus 2020), diakses 14 Oktober 2026.
-Endpoint metadata publik dan snapshot tersedia pada `data/source_metadata.json`.
-Deskripsi repository menyatakan dua plant India, 34 hari, generation di tingkat inverter,
-dan satu array sensor di tingkat plant. Pemilik fasilitas/original collector tidak
-diidentifikasi di metadata tersebut. Lisensi tercantum **Data files © Original Authors**;
-bukan pernyataan lisensi terbuka tanpa batas. Tim perlu memastikan ketentuan penggunaan
-dan distribusi untuk submission; public availability tidak menggantikan pemeriksaan izin.
+diunggah Ani Kannal, **versi 1** (rilis 18 Agustus 2020), diakses 14 Oktober 2026.
+Salinan metadata dari layanan publik tersedia pada `data/source_metadata.json`.
+Deskripsi repositori menyebut dua pembangkit di India selama 34 hari, pengukuran daya
+pada tingkat inverter, dan satu rangkaian sensor pada tingkat pembangkit. Pemilik
+fasilitas atau pengumpul data asli tidak diidentifikasi dalam metadata tersebut.
+Lisensi tercantum **Data files © Original Authors**; nama lisensi ini dikutip sesuai sumber
+dan bukan pernyataan lisensi terbuka tanpa batas. Tim perlu memastikan ketentuan penggunaan
+dan distribusi untuk pengumpulan tugas; akses publik tidak menggantikan pemeriksaan izin.
 
-Satuan daya, temperatur, dan irradiation tidak dijelaskan di metadata yang diperoleh.
-Grafik memakai **unit asli dataset**, tanpa koreksi faktor skala yang tidak terverifikasi.
-Timestamp diperlakukan sebagai waktu lokal sumber tanpa timezone yang dikonfirmasi;
+Satuan daya, temperatur, dan iradiasi tidak dijelaskan dalam metadata yang diperoleh.
+Grafik memakai **satuan asli dataset**, tanpa koreksi faktor skala yang tidak terverifikasi.
+Waktu pengamatan diperlakukan sebagai waktu lokal sumber tanpa zona waktu yang dikonfirmasi;
 tidak dikonversi ke WIB. WIB hanya untuk administrasi tugas.
 
 | Kolom | Definisi / peran |
 |---|---|
-| DATE_TIME | Timestamp observasi; format eksplisit berbeda untuk generation Plant 1 |
-| PLANT_ID | ID plant asli; categorical, bukan besaran numeric |
-| SOURCE_KEY generation | ID inverter; diubah nama menjadi INVERTER_ID |
-| SOURCE_KEY weather | ID sensor; diubah menjadi SENSOR_ID; tidak join atas ID ini |
-| DC_POWER | Target daya DC pada timestamp t, unit asli |
-| AC_POWER | Daya AC bersamaan; proxy target, hanya untuk audit development |
-| DAILY_YIELD / TOTAL_YIELD | Yield kumulatif; excluded dari fitur scope ini |
+| DATE_TIME | Waktu pengamatan; format eksplisit berbeda pada data daya Plant 1 |
+| PLANT_ID | ID pembangkit asli; kategori, bukan besaran numerik |
+| SOURCE_KEY pada data daya | ID inverter; namanya diubah menjadi INVERTER_ID |
+| SOURCE_KEY pada data cuaca | ID sensor; diubah menjadi SENSOR_ID; tidak digunakan sebagai kunci penggabungan |
+| DC_POWER | Target daya DC pada waktu t, dalam satuan asli |
+| AC_POWER | Daya AC bersamaan; proksi target, hanya untuk audit data pengembangan |
+| DAILY_YIELD / TOTAL_YIELD | Hasil energi kumulatif; dikeluarkan dari fitur penelitian ini |
 | AMBIENT_TEMPERATURE | Temperatur lingkungan pada t, fitur sensor |
 | MODULE_TEMPERATURE | Temperatur modul pada t, fitur sensor |
-| IRRADIATION | Irradiation pada t; fitur dan eligibility daytime |
+| IRRADIATION | Iradiasi pada t; fitur dan penentu kelayakan pengamatan siang |
 
-Enam calon prediktor tersedia: tiga sensor cuaca, timestamp, plant ID, inverter ID.
-Ukuran aktual dan hashes di bawah menjadi bukti kelayakan serta exact version.
+Enam calon prediktor tersedia: tiga sensor cuaca, waktu pengamatan, ID pembangkit, dan ID inverter.
+Ukuran aktual dan nilai hash di bawah menjadi bukti kelayakan serta identitas versi data yang digunakan.
 ''')
 code('''
 FILES = {f'Plant_{p}_{kind}_Data.csv':
@@ -198,15 +200,16 @@ for name, df in parsed.items():
     display(df.head(2))
 ''')
 md('''
-## 3. Data-quality assessment
+## 3. Penilaian kualitas data
 
-Audit global di section 2-4 dibatasi pada schema, keys, timestamps, missingness dan
-aturan invalid yang telah ditentukan. Statistik distribusi target, korelasi, skala,
-outlier dan keputusan modeling hanya pada development setelah split. Tidak mengisi
-target missing dan tidak menghapus zero daytime yang bisa menjadi sinyal operasional.
-Temperatur negatif tidak otomatis invalid. Infinity diperlakukan missing/invalid.
-Exact duplicates dapat dihapus; duplicate keys yang konflik menghentikan eksekusi
-agar tidak memilih record secara arbitrer.
+Audit seluruh data pada bagian 2–4 dibatasi pada struktur kolom, kunci, waktu pengamatan,
+nilai hilang, dan aturan nilai tidak valid yang telah ditentukan. Statistik distribusi
+target, korelasi, skala, pencilan, dan keputusan pemodelan hanya menggunakan data
+pengembangan setelah pembagian. Target yang hilang tidak diisi, dan nilai nol pada siang
+hari tidak dihapus karena dapat menjadi sinyal operasional. Temperatur negatif tidak
+otomatis tidak valid. Nilai tak hingga diperlakukan sebagai nilai hilang atau tidak valid.
+Baris yang identik dapat dihapus; kunci ganda dengan isi bertentangan menghentikan eksekusi
+agar tidak memilih catatan secara sembarang.
 ''')
 code('''
 audit_rows, cadence_rows, coverage_rows = [], [], []
@@ -249,31 +252,33 @@ assert (audit.duplicate_keys_after_exact_drop == 0).all(), 'Conflicting keys req
 assert (audit.missing_key_rows == 0).all(), 'Missing IDs/timestamps require review'
 ''')
 md('''
-### Leakage inventory
+### Daftar risiko kebocoran data
 
-| Field | Availability / keputusan |
+| Kolom atau komponen | Ketersediaan / keputusan |
 |---|---|
-| Weather t, ID, waktu | Diizinkan untuk estimasi t, dengan asumsi sensor diterima tepat waktu |
-| AC_POWER t | Excluded; proxy output bersamaan membuat estimasi tidak bermakna untuk monitoring |
-| DAILY_YIELD / TOTAL_YIELD | Excluded; kumulatif terkait output, reset/availability belum memadai untuk scope |
-| DC_POWER | Target, tidak pernah masuk input preprocessing |
+| Cuaca pada t, ID, waktu | Diizinkan untuk estimasi t, dengan asumsi sensor diterima tepat waktu |
+| AC_POWER pada t | Dikeluarkan; proksi daya bersamaan membuat estimasi tidak bermakna untuk pemantauan |
+| DAILY_YIELD / TOTAL_YIELD | Dikeluarkan; kumulatif terkait daya, dengan pengaturan ulang dan ketersediaan yang belum memadai untuk ruang lingkup ini |
+| DC_POWER | Target, tidak pernah masuk masukan prapemrosesan |
 | SENSOR_ID | Tidak digunakan: identitas sensor bukan identitas inverter |
-| Statistik imputasi, encoding, scaling | Di-fit hanya pada training fold melalui pipeline |
-| Lag/future values | Tidak digunakan; horizon 0 tanpa interpolasi masa depan |
+| Statistik imputasi, pengodean, dan penskalaan | Dipelajari hanya pada bagian pelatihan setiap lipatan validasi melalui pipeline |
+| Nilai tertunda atau nilai masa depan | Tidak digunakan; horizon 0 tanpa interpolasi yang memakai masa depan |
 
-Yield kumulatif tidak otomatis mengandung masa depan; alasan exclusion adalah
-hubungannya dengan output dan ketidakjelasan timing untuk penggunaan yang dipilih.
+Hasil energi kumulatif tidak otomatis mengandung informasi masa depan; alasan
+pengeluarannya adalah hubungan dengan daya dan ketidakjelasan waktu ketersediaannya
+untuk penggunaan yang dipilih.
 ''')
 md('''
-## 4. Data preparation
+## 4. Persiapan data
 
-Generation dan weather digabung pada plant dan timestamp, dengan validasi many-to-one.
-Kita menyimpan original plant ID dan memisahkan inverter ID dari sensor ID. Negative
-sensor irradiation diubah menjadi missing dan dikeluarkan dari eligibility, target
-negative/nonfinite dikeluarkan, sedangkan missing fitur lain ditangani dalam pipeline.
-Daytime didefinisikan sebelum melihat hasil: irradiation valid > 0. Baris missing
-irradiation dilaporkan sebagai unavailable, bukan malam. Tidak ada clipping target,
-forward-fill, koreksi skala, atau pembuangan outlier valid.
+Data daya dan cuaca digabung berdasarkan pembangkit dan waktu pengamatan, dengan
+validasi hubungan banyak-ke-satu. ID pembangkit asli disimpan, sedangkan ID inverter
+dipisahkan dari ID sensor. Iradiasi negatif diubah menjadi nilai hilang dan tidak
+memenuhi syarat analisis. Target negatif atau tidak berhingga dikeluarkan; nilai hilang
+pada fitur lain ditangani melalui pipeline. Pengamatan siang ditentukan sebelum melihat
+hasil: iradiasi valid > 0. Iradiasi yang hilang dilaporkan sebagai data tidak tersedia,
+bukan malam. Tidak dilakukan pembatasan nilai target, pengisian dari pengamatan
+sebelumnya, koreksi skala, atau pembuangan pencilan yang valid.
 ''')
 code('''
 generations, weathers = [], []
@@ -337,21 +342,23 @@ show_table(pd.DataFrame([{'partition': name, 'rows': len(d), 'days': d.DATE.nuni
     for name, d in [('development', dev), ('locked test', test)]]), 'holdout_split')
 show_table(dev[sensor_cols + ['DC_POWER']].isna().sum().rename('missing_development').reset_index(),
            'development_missing_features')
-note(f'**Preparation:** {eligible.sum():,}/{len(merged):,} generation rows eligible '
-     f'({100 * eligible.mean():.2f}%). Join unmatched: {merged._merge.eq("left_only").sum():,}. '
-     'Coverage applies only to observed records: missing generation intervals are not reconstructed.')
+note(f'**Persiapan data:** {eligible.sum():,}/{len(merged):,} baris data daya memenuhi syarat '
+     f'({100 * eligible.mean():.2f}%). Baris tanpa pasangan cuaca: {merged._merge.eq("left_only").sum():,}. '
+     'Cakupan hanya berlaku pada catatan yang diamati; interval daya yang hilang tidak direkonstruksi.')
 ''')
 md('''
-### Development-only scale, target and outlier audit
+### Audit skala, target, dan pencilan pada data pengembangan
 
-AC_POWER is retained in the audit frame only; model input excludes it explicitly.
-DC/AC ratios below cannot identify a correction factor by themselves. We retain original
-DC_POWER units and use a pooled model with plant identity, then report plant-level errors.
-The primary objective is raw-scale pooled MAE (mean of fold MAEs), an empirical benchmark
-that weights each observation equally but is numerically dominated by the larger-scale
-plant. It is not a comparable physical loss or economic objective across plants.
-This limitation is fixed before candidate comparison; plant-level MAE and normalized
-MAE relative to development plant mean provide complementary evidence.
+AC_POWER dipertahankan hanya dalam tabel audit dan secara eksplisit dikeluarkan dari
+masukan model. Rasio DC/AC di bawah tidak cukup untuk menentukan faktor koreksi.
+Satuan DC_POWER asli dipertahankan; model gabungan menggunakan identitas pembangkit,
+kemudian galat dilaporkan per pembangkit. Tujuan utama adalah MAE gabungan pada skala
+asli, dihitung sebagai rata-rata MAE setiap lipatan validasi. Tolok ukur ini memberi
+bobot yang sama pada setiap pengamatan, tetapi secara numerik didominasi pembangkit
+dengan skala lebih besar. Nilainya bukan kerugian fisik atau tujuan ekonomi yang
+sebanding antar pembangkit. Batas ini ditetapkan sebelum perbandingan kandidat;
+MAE per pembangkit dan MAE yang dinormalisasi terhadap rata-rata target data
+pengembangan masing-masing pembangkit menjadi bukti pelengkap.
 ''')
 code('''
 scale_audit = dev.groupby('PLANT_ID').agg(n=('DC_POWER', 'size'), mean_dc=('DC_POWER', 'mean'),
@@ -377,18 +384,19 @@ dev_full['light'] = np.where(dev_full.IRRADIATION.isna(), 'unavailable',
 show_table(dev_full.groupby(['PLANT_ID', 'light']).agg(n=('DC_POWER', 'size'),
     target_mean=('DC_POWER', 'mean'), zeros=('DC_POWER', lambda s: int(s.eq(0).sum()))).reset_index(),
     'development_day_night_target')
-note('**Observed scale:** ' + '; '.join(f'Plant {p}: median positive DC/AC ratio '
+note('**Skala yang diamati:** ' + '; '.join(f'Plant {p}: median rasio DC/AC positif '
     f'{ratios.loc[p]:.3f}' for p in ratios.index) +
-    '. The inter-plant difference is not corrected without authoritative unit/rating metadata. '
-    'All valid extremes and daytime zeros are retained.')
+    '. Perbedaan antar pembangkit tidak dikoreksi tanpa metadata satuan/kapasitas yang dapat dipercaya. '
+    'Semua nilai ekstrem yang valid dan nilai nol pada siang hari dipertahankan.')
 ''')
 md('''
-## 5. Exploratory data analysis
+## 5. Analisis eksploratif data
 
-All EDA below uses development only. Histograms/boxplots summarize variability; scatter
-and within-plant correlations assess sensor relationships; clock profiles motivate
-cyclic time encoding. Inverter differences are descriptive and may reflect coverage,
-rating or equipment configuration. They do not diagnose faults.
+Seluruh analisis eksploratif di bawah hanya menggunakan data pengembangan. Histogram
+dan diagram kotak merangkum variasi; diagram pencar dan korelasi dalam tiap pembangkit
+menilai hubungan sensor; profil waktu mendasari pengodean waktu siklis. Perbedaan
+inverter bersifat deskriptif dan dapat mencerminkan cakupan pengamatan, kapasitas,
+atau konfigurasi peralatan. Perbedaan tersebut tidak mendiagnosis kerusakan.
 ''')
 code('''
 show_table(dev.groupby('PLANT_ID')[['DC_POWER'] + sensor_cols].describe().stack(level=0).reset_index(),
@@ -439,28 +447,31 @@ for ax, (plant, part) in zip(axes, dev.groupby('PLANT_ID')):
 save_plot('eda_temperature_gap')
 show_table(pd.DataFrame(correlations), 'eda_irradiation_correlations')
 peaks = hourly.loc[hourly.groupby('PLANT_ID').DC_POWER.idxmax()]
-note('**EDA interpretation:** ' + '; '.join(f'Plant {r.plant}: irradiation/output Pearson r='
+note('**Interpretasi analisis eksploratif:** ' + '; '.join(f'Plant {r.plant}: korelasi Pearson iradiasi/daya r='
     f'{r.irradiation_DC_corr:.3f}' for r in pd.DataFrame(correlations).itertuples()) +
-    '. This motivates retaining irradiation, but does not establish causality. '
-    'Mean output peaks at ' + '; '.join(f'{r.CLOCK_HOUR:.2f} source-local hours (plant {r.PLANT_ID})'
-    for r in peaks.itertuples()) + '. Clock encoding retains minutes. Temperature gap is evaluated '
-    'as a predictive transformation; correlated weather/time effects prevent a causal overheating claim.')
+    '. Hasil ini mendukung penggunaan iradiasi, tetapi tidak membuktikan sebab-akibat. '
+    'Rata-rata daya mencapai puncak pada ' + '; '.join(f'{r.CLOCK_HOUR:.2f} jam waktu lokal sumber (Plant {r.PLANT_ID})'
+    for r in peaks.itertuples()) + '. Pengodean waktu mempertahankan informasi menit. Selisih temperatur dinilai '
+    'sebagai transformasi prediktif; korelasi cuaca dan waktu tidak memungkinkan klaim kausal tentang panas berlebih.')
 ''')
 md('''
-## 6. Feature engineering
+## 6. Rekayasa fitur
 
-Features are fixed before comparison: three sensors, fractional-hour sine/cosine,
-temperature gap, irradiation × module temperature, irradiation squared, and one-hot
-plant/inverter identity. Interaction/polynomial terms let linear models express some
-nonlinearity; trees can capture further interactions. No claim of incremental feature
-benefit without an ablation study. DAY_OF_WEEK is omitted because four weeks provide
-little justification for an operational weekly cycle.
+Fitur ditetapkan sebelum perbandingan: tiga sensor, sinus/kosinus waktu dengan pecahan
+jam, selisih temperatur, iradiasi × temperatur modul, iradiasi kuadrat, serta identitas
+pembangkit/inverter dengan pengodean one-hot. Interaksi dan suku polinomial memungkinkan
+model linear mewakili sebagian hubungan nonlinear; model pohon dapat menangkap interaksi
+lebih lanjut. Manfaat tambahan tiap fitur tidak diklaim tanpa studi penghilangan fitur.
+DAY_OF_WEEK tidak digunakan karena pengamatan selama empat minggu belum cukup mendukung
+adanya siklus operasional mingguan.
 
-Numeric median imputation and categorical most-frequent imputation are fit within each
-training fold. Linear/Ridge numeric scaling also stays inside the pipeline. Dense
-one-hot input enables every estimator, including positive-constrained linear tuning.
-Unknown IDs are encoded as all zero; this handles software input, not proven new-site
-generalization. No target scaling or identity label encoding is used.
+Imputasi median untuk fitur numerik dan nilai paling sering untuk kategori dipelajari
+hanya dari bagian pelatihan setiap lipatan validasi. Penskalaan fitur numerik untuk
+Linear Regression/Ridge juga berada dalam pipeline. Matriks one-hot padat mendukung
+semua estimator, termasuk pencarian model linear dengan batas koefisien positif.
+ID yang tidak dikenal dikodekan seluruhnya nol; ini menangani masukan perangkat lunak,
+bukan membuktikan kemampuan pada lokasi baru. Target tidak diskalakan dan ID tidak
+diberi kode label berurutan.
 ''')
 code('''
 def engineer(frame):
@@ -494,17 +505,21 @@ def make_pipeline(estimator):
 display(pd.DataFrame({'feature': FEATURES, 'type': ['numeric'] * len(NUMERIC) + ['categorical'] * 2}))
 ''')
 md('''
-## 7. Baseline model and chronological validation
+## 7. Model acuan dan validasi kronologis
 
-The last 20% of unique dates are a locked test (rounding to whole dates); earlier dates
-form development. Five expanding-window CV folds partition **dates**, not panel rows.
-All inverters/plants on a date move together. Gap=0 is appropriate to this contemporaneous
-task without lags or overlapping future labels. Training history increases across folds.
+Sebanyak 20% tanggal unik terakhir menjadi data uji yang dikunci, dengan pembulatan
+ke tanggal utuh; tanggal sebelumnya menjadi data pengembangan. Lima lipatan validasi
+silang dengan jendela pelatihan yang meluas membagi **tanggal**, bukan baris panel.
+Semua inverter/pembangkit pada tanggal yang sama berada dalam bagian yang sama.
+Jeda=0 sesuai untuk estimasi pada waktu yang sama, tanpa fitur tertunda atau label
+masa depan yang tumpang tindih. Riwayat pelatihan bertambah pada lipatan berikutnya.
 
-Mean baseline learns only training target mean. **Primary:** mean fold MAE; **secondary:**
-RMSE, with R² supporting. MAPE is omitted because zeros/near-zeros occur. Fair comparison
-uses identical folds/rows/features for all candidates. Fold dispersion is descriptive
-uncertainty, not an iid confidence interval.
+Model acuan rata-rata hanya mempelajari rata-rata target pelatihan. **Metrik utama:**
+rata-rata MAE tiap lipatan; **metrik sekunder:** RMSE, dengan R² sebagai pendukung.
+MAPE tidak digunakan karena terdapat nilai nol atau mendekati nol. Perbandingan yang
+adil menggunakan lipatan, baris, dan fitur identik untuk semua kandidat. Variasi antar
+lipatan menggambarkan ketidakpastian deskriptif, bukan interval kepercayaan dengan
+asumsi pengamatan saling independen dan berdistribusi identik.
 ''')
 code('''
 cv_splits, fold_rows = [], []
@@ -546,22 +561,24 @@ def evaluate_cv(name, pipe):
 baseline_pipe = make_pipeline(DummyRegressor(strategy='mean'))
 base_folds, base_plant, base_oof = evaluate_cv('Mean baseline', baseline_pipe)
 show_table(base_folds, 'baseline_cv_folds')
-note(f'Mean baseline development CV MAE = **{base_folds.MAE.mean():,.3f}** '
-     f'(fold SD {base_folds.MAE.std():,.3f}), in original target units. '
-     'The baseline is a performance reference, not an inspection rule.')
+note(f'MAE validasi silang model acuan rata-rata pada data pengembangan = **{base_folds.MAE.mean():,.3f}** '
+     f'(simpangan baku antar lipatan {base_folds.MAE.std():,.3f}), dalam satuan target asli. '
+     'Model acuan menjadi tolok ukur kinerja, bukan aturan inspeksi.')
 ''')
 md('''
-## 8. Candidate models
+## 8. Kandidat model
 
-Linear Regression supplies an interpretable additive comparator. Ridge regularizes
-correlated engineered features. Random Forest captures nonlinear interactions by
-bagging trees. Gradient Boosting Regressor is the sklearn estimator, **not XGBoost**.
-RF uses the estimator default 100 trees with fixed seed and bounded threads; GB uses
-default structural parameters with fixed seed. All other defaults are displayed.
+Linear Regression menjadi pembanding aditif yang mudah diinterpretasikan. Ridge
+memberi regularisasi pada fitur hasil rekayasa yang berkorelasi. Random Forest menangkap
+interaksi nonlinear melalui penggabungan pohon hasil pengambilan sampel ulang.
+Gradient Boosting Regressor merupakan estimator sklearn, **bukan XGBoost**. Random Forest
+menggunakan pengaturan awal 100 pohon, seed tetap, dan jumlah utas terbatas; Gradient
+Boosting menggunakan parameter struktur awal dan seed tetap. Pengaturan awal lain ditampilkan.
 
-No test predictions occur here. Top two non-baseline candidates are ranked by CV MAE,
-with alphabetical name as a deterministic tie-break only for exact ties. Fit timings
-serve as a pilot to set search budget before tuning.
+Tidak ada prediksi data uji pada tahap ini. Dua kandidat terbaik selain model acuan
+ditentukan berdasarkan MAE validasi silang. Urutan abjad menjadi pemecah seri hanya
+jika nilainya persis sama. Waktu pelatihan awal digunakan untuk menetapkan anggaran
+pencarian sebelum penyetelan parameter.
 ''')
 code('''
 models = {
@@ -597,26 +614,30 @@ ax.barh(ranking.model, ranking.CV_MAE, xerr=ranking.CV_MAE_SD, capsize=3)
 ax.invert_yaxis(); ax.set(title='Default models: identical development folds',
     xlabel='Mean fold MAE ± fold SD (original target units)', ylabel='Model')
 save_plot('default_cv_comparison')
-note(f'**Selected for tuning:** {", ".join(selected)}. Selection uses development CV only. '
-     'A large SD indicates variation across chronological windows; it is not evidence of a precise iid mean.')
+note(f'**Dipilih untuk penyetelan:** {", ".join(selected)}. Pemilihan hanya memakai validasi silang data pengembangan. '
+     'Simpangan baku besar menunjukkan variasi antar jendela kronologis; nilainya bukan bukti estimasi rata-rata yang presisi dengan asumsi pengamatan independen.')
 ''')
 md('''
-## 9. Hyperparameter tuning
+## 9. Penyetelan hiperparameter
 
-Tune two relevant parameters or more for each of the two selected candidates. Search
-uses identical five date folds and negative MAE scoring (converted to positive loss).
-Linear: intercept and positivity; positivity constrains coefficients on scaled numeric
-and one-hot features and is an empirical candidate, not a physical causal assumption.
-Ridge: alpha and intercept. RF: number/depth of trees, leaf size and feature subsampling.
-GB: stages, learning rate, tree depth, subsampling and leaf size.
+Sedikitnya dua parameter relevan disetel pada masing-masing dari dua kandidat terpilih.
+Pencarian menggunakan lima lipatan tanggal yang identik dan skor MAE negatif, yang
+dikonversi kembali menjadi galat positif. Linear Regression: intersep dan batas
+koefisien positif; batas ini berlaku pada fitur numerik yang diskalakan dan fitur
+one-hot, sebagai kandidat empiris, bukan asumsi kausal fisik. Ridge: alpha dan intersep.
+Random Forest: jumlah/kedalaman pohon, ukuran daun, dan pengambilan sebagian fitur.
+Gradient Boosting: jumlah tahap, laju pembelajaran, kedalaman pohon, pengambilan sebagian
+baris, dan ukuran daun.
 
-Budget fixed after default pilot and before search: at most **4 sampled configurations**
-per ensemble, consistent with the planning maximum 12, to keep full-data execution
-reasonable. Small spaces use all combinations when <=4. No row sampling for fitting;
-only figures/permutation diagnostics may sample. This is a limited systematic search,
-not a claim of global optimality. Search workers=1; bounded estimator/BLAS threads.
-The same CV scores are reused for ranking/search, so selected CV performance is optimistic;
-the untouched test is the independent final check.
+Anggaran ditetapkan setelah pelatihan awal dan sebelum pencarian: paling banyak
+**4 konfigurasi sampel** per model ansambel, sesuai batas maksimum 12 pada rencana,
+agar waktu eksekusi seluruh data tetap wajar. Semua kombinasi digunakan jika ruang
+pencarian berjumlah paling banyak 4. Pelatihan tidak mengambil sebagian baris;
+pengambilan sampel hanya untuk grafik dan diagnosis permutasi. Ini pencarian sistematis
+yang terbatas, bukan klaim solusi terbaik secara global. Pencarian memakai satu proses
+pekerja dan jumlah utas estimator/BLAS yang dibatasi. Skor validasi silang dipakai ulang
+untuk pemeringkatan dan pencarian sehingga hasil terpilih dapat terlalu optimistis;
+data uji yang belum disentuh menjadi pemeriksaan akhir yang independen.
 ''')
 code('''
 spaces = {
@@ -663,19 +684,22 @@ ax.set(title='Default vs tuned on identical development folds', xlabel='Selected
 save_plot('default_vs_tuned')
 ''')
 md('''
-## 10. Model evaluation and final selection
+## 10. Evaluasi dan pemilihan model akhir
 
-Final selection considers all default candidates, both tuned candidates and baseline,
-using minimum development CV MAE. There is no mandatory preference for an ensemble or
-tuned version. Exact ties prefer a default configuration, then name. All features,
-preprocessing, parameters, metric and alert policy are frozen before test prediction.
+Pemilihan akhir mempertimbangkan seluruh kandidat dengan pengaturan awal, kedua
+kandidat hasil penyetelan, dan model acuan, berdasarkan MAE validasi silang data
+pengembangan terendah. Tidak ada keharusan memilih model ansambel atau hasil penyetelan.
+Jika nilainya persis sama, pengaturan awal didahulukan, kemudian urutan nama. Seluruh
+fitur, prapemrosesan, parameter, metrik, dan aturan peringatan dikunci sebelum prediksi data uji.
 
-Alert policy is calibrated on selected-model out-of-fold **development** predictions:
-per plant, the 95th percentile of positive predicted−actual gaps, with minimum expected
-output at the 25th percentile of OOF predictions and **3 consecutive 15-minute intervals**.
-Only positive, above-threshold gaps count. Quantile and persistence are predeclared
-prototype choices, not fault-optimal thresholds. Gaps in timestamps reset persistence.
-The first development training window has no OOF predictions and is excluded from calibration.
+Aturan peringatan dikalibrasi menggunakan prediksi model terpilih pada data
+**pengembangan** di luar bagian pelatihan masing-masing lipatan (OOF). Untuk setiap
+pembangkit, ambang ditentukan dari persentil ke-95 selisih positif prediksi−aktual,
+dengan daya estimasi minimum pada persentil ke-25 prediksi OOF dan **3 interval 15 menit
+berturut-turut**. Hanya selisih positif di atas ambang yang dihitung. Kuantil dan syarat
+keberlanjutan merupakan pilihan prototipe yang ditentukan sebelumnya, bukan ambang
+optimal untuk kerusakan. Waktu pengamatan yang terputus mengulang perhitungan urutan.
+Jendela pelatihan pertama tidak memiliki prediksi OOF sehingga tidak digunakan dalam kalibrasi.
 ''')
 code('''
 pool = []
@@ -711,9 +735,9 @@ lock = {'selected': chosen['candidate'], 'selected_CV_MAE': float(chosen['CV_MAE
     'thresholds': threshold_rows, 'locked_before_test_prediction': True,
     'utc_lock_time': datetime.now(timezone.utc).isoformat()}
 (OUT / 'selection_lock.json').write_text(json.dumps(lock, indent=2, default=str))
-note(f'**Frozen selection: {chosen["candidate"]}**, CV MAE {chosen["CV_MAE"]:,.3f}. '
-     'This choice and alert policy are logged before any test prediction. '
-     'Comparison was on the pooled original scale; plant-level limitations remain.')
+note(f'**Pilihan yang dikunci: {chosen["candidate"]}**, MAE validasi silang {chosen["CV_MAE"]:,.3f}. '
+     'Pilihan dan aturan peringatan dicatat sebelum prediksi data uji. '
+     'Perbandingan menggunakan skala asli gabungan; keterbatasan per pembangkit tetap berlaku.')
 
 # Final test begins here. No model/feature/threshold selection follows.
 final_model = clone(chosen_pipe).fit(X_dev, y_dev)
@@ -749,11 +773,11 @@ for column in ['INVERTER_ID', 'hour', 'irradiation_band', 'DATE']:
     show_table(table, 'final_error_by_' + column.lower())
 test_report.to_csv(OUT / 'final_test_predictions.csv', index=False)
 test_gain = 100 * (final_scores.iloc[1].MAE - final_scores.iloc[0].MAE) / final_scores.iloc[1].MAE
-note(f'**Independent final test:** selected MAE {final_scores.iloc[0].MAE:,.3f}, '
+note(f'**Pengujian akhir independen:** MAE model terpilih {final_scores.iloc[0].MAE:,.3f}, '
      f'RMSE {final_scores.iloc[0].RMSE:,.3f}, R² {final_scores.iloc[0].R2:.4f}; '
-     f'MAE reduction vs mean baseline {test_gain:.2f}%. '
-     'These values describe held-out daytime observations at known plants only. '
-     f'Negative predictions: {(pred_final < 0).sum():,}; predictions are not post-hoc clipped.')
+     f'penurunan MAE terhadap model acuan rata-rata {test_gain:.2f}%. '
+     'Nilai ini hanya menggambarkan pengamatan siang pada data uji dari pembangkit yang dikenal. '
+     f'Prediksi negatif: {(pred_final < 0).sum():,}; prediksi tidak dibatasi setelah evaluasi.')
 ''')
 code('''
 fig, axes = plt.subplots(2, 3, figsize=(16, 9))
@@ -790,49 +814,56 @@ for ax, (plant, part) in zip(axes, test_report.groupby('PLANT_ID')):
 save_plot('test_residual_histogram')
 show_table(test_report.nlargest(10, 'abs_error')[['PLANT_ID', 'INVERTER_ID', 'DATE_TIME',
     'IRRADIATION', 'actual', 'predicted', 'residual']], 'largest_test_errors')
-note('**Diagnostic interpretation:** inspect plant-wise bias, low-light/peak errors and persistent '
-    'residuals above rather than requiring normality. Lag-one correlation uses only contiguous '
-    '15-minute pairs within the same inverter; temporal dependence means row-iid uncertainty '
-    'would be misleading. Error extremes are retained, not removed after test inspection. '
-    'Test diagnostics inform limitations and future studies, not a new model choice in this run.')
+note('**Interpretasi diagnosis:** periksa bias per pembangkit, galat pada cahaya rendah atau daya puncak, '
+    'dan residual yang menetap tanpa mensyaratkan distribusi normal. Korelasi tertunda satu interval '
+    'hanya memakai pasangan 15 menit berurutan dalam inverter yang sama; ketergantungan waktu '
+    'membuat ketidakpastian dengan asumsi baris independen menjadi menyesatkan. Galat ekstrem '
+    'dipertahankan, bukan dihapus setelah pemeriksaan data uji. Diagnosis data uji mendasari '
+    'keterbatasan dan penelitian lanjutan, bukan pemilihan model baru dalam eksekusi ini.')
 ''')
 md('''
-## 11. Model interpretation
+## 11. Interpretasi model
 
-Interpretation is descriptive after freezing selection. Built-in tree importance has
-split/cardinality bias; linear coefficient magnitudes depend on scaling and correlated
-features. Permutation importance below uses **negative MAE**, so a positive increase in
-loss indicates useful predictive information. Repeated permutations report sensitivity
-to random permutation, not a generalization confidence interval.
+Interpretasi bersifat deskriptif setelah pemilihan dikunci. Tingkat kepentingan bawaan
+model pohon memiliki bias pemisahan dan jumlah kategori; besar koefisien linear
+bergantung pada penskalaan dan korelasi fitur. Tingkat kepentingan melalui permutasi
+di bawah menggunakan **MAE negatif**, sehingga kenaikan galat yang positif menunjukkan
+informasi yang berguna untuk prediksi. Pengulangan permutasi menggambarkan sensitivitas
+terhadap pengacakan, bukan interval kepercayaan kemampuan generalisasi.
 
-Correlated sensors and deterministic derived features can share/substitute importance;
-permuting one feature can produce unrealistic combinations. Neither importance nor
-coefficient is a causal effect or percentage of target variance explained. PDP is omitted
-because temperature gap and interaction features are mechanically linked, making naive
-independent interventions misleading. Inverter identity may absorb chronic poor output;
-a small residual does not establish a healthy inverter.
+Sensor yang berkorelasi dan fitur turunan deterministik dapat berbagi atau saling
+menggantikan informasi; mengacak satu fitur dapat menghasilkan kombinasi tidak realistis.
+Tingkat kepentingan maupun koefisien bukan efek kausal atau persentase variasi target yang
+dijelaskan. Grafik ketergantungan parsial (PDP) tidak digunakan karena selisih temperatur
+dan fitur interaksi terkait secara matematis, sehingga perubahan masing-masing secara
+independen dapat menyesatkan. Identitas inverter dapat menyerap pola daya rendah kronis;
+residual kecil tidak membuktikan inverter sehat.
 
-### Interpretation of the delivered run
+### Interpretasi hasil eksekusi
 
-Random Forest tuning changes CV MAE from about 294.84 to 290.62 (1.43% improvement);
-Gradient Boosting's sampled tuned candidates are worse than its default (about 354.05
-vs 294.00). The minimum-CV rule selects tuned Random Forest, but the small advantage
-relative to fold variability is not evidence of statistically significant superiority.
+Penyetelan Random Forest mengubah MAE validasi silang dari sekitar 294,84 menjadi 290,62
+(perbaikan 1,43%). Kandidat Gradient Boosting hasil pencarian lebih buruk daripada
+pengaturan awalnya, sekitar 354,05 dibandingkan 294,00. Aturan MAE validasi silang
+terendah memilih Random Forest hasil penyetelan, tetapi keunggulan kecil dibandingkan
+variasi antar lipatan tidak membuktikan keunggulan yang signifikan secara statistik.
 
-Held-out pooled R² is about 0.979, while **Plant 1 R² is 0.964 and Plant 2 R² is only 0.390**.
-MAE relative to development plant mean is about 5.04% and 23.08%, respectively; this
-is normalized MAE, not row-wise MAPE. Plant 2 therefore needs greater caution despite
-its smaller absolute-unit MAE. The actual-predicted figure shows substantial mismatches
-around zero actual output and more scatter at Plant 2. Those are inspection candidates,
-not labeled faults. Contiguous residual lag-one correlations around 0.596 and 0.771
-show persistence; normal/iid residual assumptions would be inappropriate.
+R² gabungan pada data uji sekitar 0,979, sedangkan **R² Plant 1 sebesar 0,964 dan R²
+Plant 2 hanya 0,390**. MAE relatif terhadap rata-rata target data pengembangan masing-masing
+pembangkit sekitar 5,04% dan 23,08%; ini MAE yang dinormalisasi, bukan MAPE per baris.
+Karena itu, Plant 2 memerlukan kehati-hatian lebih besar meskipun MAE dalam satuan
+absolutnya lebih kecil. Grafik aktual-prediksi menunjukkan ketidaksesuaian besar pada
+daya aktual mendekati nol dan sebaran lebih lebar pada Plant 2. Pengamatan tersebut
+merupakan kandidat inspeksi, bukan kerusakan berlabel. Korelasi residual tertunda satu
+interval pada pengamatan berurutan sekitar 0,596 dan 0,771 menunjukkan pola menetap;
+asumsi residual normal atau saling independen tidak tepat.
 
-PLANT_ID has the largest pooled permutation sensitivity, reflecting the large scale
-difference. Permuting plant while leaving inverter ID unchanged also creates inconsistent
-identity combinations; its magnitude cannot be treated as a clean operational effect.
-IRRADIATION and its square share predictive information, so their attribution is not
-an additive causal decomposition. These diagnostics support separate plant reporting,
-unit verification and an operator-reviewed pilot, rather than production automation.
+PLANT_ID memiliki sensitivitas permutasi gabungan terbesar, mencerminkan perbedaan
+skala yang besar. Mengacak pembangkit tanpa mengubah ID inverter juga menciptakan
+kombinasi identitas yang tidak konsisten; besarnya tidak dapat diperlakukan sebagai
+efek operasional tersendiri. IRRADIATION dan kuadratnya berbagi informasi prediktif,
+sehingga kontribusinya bukan penguraian efek kausal yang dapat dijumlahkan. Diagnosis ini
+mendukung pelaporan terpisah per pembangkit, verifikasi satuan, dan uji coba dengan
+pemeriksaan operator sebelum mempertimbangkan otomatisasi operasional.
 ''')
 code('''
 estimator = final_model.named_steps['model']
@@ -845,7 +876,7 @@ elif hasattr(estimator, 'coef_'):
     builtin['absolute_coefficient'] = builtin.coefficient.abs()
     show_table(builtin.sort_values('absolute_coefficient', ascending=False).head(15), 'model_coefficients')
 else:
-    note('Selected estimator is a constant baseline; no learned feature attribution is available.')
+    note('Estimator terpilih adalah model acuan konstan; kontribusi fitur yang dipelajari tidak tersedia.')
 
 # Fixed diagnostic sampling only; full test metrics above use every eligible row.
 sample_idx = test_report.sample(min(3000, len(test_report)), random_state=SEED).index
@@ -859,29 +890,33 @@ ax.barh(perm_table.feature, perm_table.MAE_increase_mean, xerr=perm_table.permut
 ax.invert_yaxis(); ax.set(title='Post-selection permutation sensitivity (fixed test sample)',
     xlabel='Increase in MAE ± permutation SD (original units)', ylabel='Input feature')
 save_plot('permutation_importance')
-note(f'Top permutation feature in this run: **{perm_table.iloc[0].feature}**, '
-     f'mean MAE increase {perm_table.iloc[0].MAE_increase_mean:,.3f}. '
-     'No features or parameters are changed following this diagnostic.')
+note(f'Fitur dengan sensitivitas permutasi tertinggi pada eksekusi ini: **{perm_table.iloc[0].feature}**, '
+     f'rata-rata kenaikan MAE {perm_table.iloc[0].MAE_increase_mean:,.3f}. '
+     'Tidak ada fitur atau parameter yang diubah setelah diagnosis ini.')
 ''')
 md('''
-## 12. Actionable insights
+## 12. Temuan dan rekomendasi tindakan
 
-The prototype below applies the already-locked development policy to all held-out
-inverters. Three-interval persistence is 45 minutes of interval readings, with a 30-minute
-timestamp span. Gaps/missing timestamps reset the streak. Count distinct review episodes,
-not every continuing flagged row as a separate inspection. Alert workload is measurable;
-false-positive rate, fault recall and downtime avoided require labels not supplied here.
+Prototipe di bawah menerapkan aturan yang telah dikunci dari data pengembangan pada
+seluruh inverter dalam data uji. Tiga interval berurutan mewakili 45 menit pembacaan
+interval, dengan rentang 30 menit antar waktu pengamatan. Jeda atau waktu yang hilang
+mengulang perhitungan urutan. Yang dihitung adalah episode pemeriksaan terpisah, bukan
+setiap baris peringatan lanjutan sebagai inspeksi baru. Beban peringatan dapat diukur;
+tingkat positif palsu, sensitivitas deteksi kerusakan, dan waktu henti yang dicegah
+memerlukan label yang tidak tersedia di sini.
 
-The delivered run yields 3 review episodes at Plant 1 and 10 at Plant 2 across 7 test
-days under the frozen thresholds. These numbers define a queue for operator review,
-not the number of faulty inverters. The residual thresholds (about 1,577 and 917 original
-units) are high, especially relative to Plant 2 output; smaller deviations may be missed.
-Without inspection labels this study cannot quantify that sensitivity trade-off.
+Eksekusi menghasilkan 3 episode pemeriksaan pada Plant 1 dan 10 pada Plant 2 selama
+7 hari uji dengan ambang yang dikunci. Angka ini menentukan antrean pemeriksaan
+operator, bukan jumlah inverter rusak. Ambang selisih, sekitar 1.577 dan 917 satuan
+asli, tergolong tinggi terutama terhadap daya Plant 2; penyimpangan yang lebih kecil
+dapat terlewat. Tanpa label inspeksi, penelitian ini belum dapat mengukur konsekuensi
+pemilihan ambang terhadap sensitivitas deteksi.
 
-Weather join matches are 99.994% and 100%, yet the generation cadence audit still
-finds 3,026 and 4,110 absent inverter intervals between source endpoints. One Plant 2
-inverter has only about 72.15% endpoint-based coverage. Data-quality monitoring must
-therefore include missing timestamps, not just missing cells or weather match rate.
+Kecocokan penggabungan cuaca mencapai 99,994% dan 100%, tetapi audit interval data daya
+tetap menemukan 3.026 dan 4.110 interval inverter yang tidak tercatat antara waktu awal
+dan akhir tiap sumber. Salah satu inverter Plant 2 hanya memiliki cakupan sekitar 72,15%
+berdasarkan rentang tersebut. Pemantauan kualitas data perlu mencakup waktu pengamatan
+yang hilang, bukan hanya nilai kosong atau tingkat kecocokan penggabungan cuaca.
 ''')
 code('''
 alerts = test_report.merge(thresholds, on='PLANT_ID', how='left', validate='many_to_one')
@@ -936,71 +971,78 @@ findings = pd.DataFrame([
      'stakeholder': 'Maintenance supervisor', 'value': 'Measure feasibility before production rollout',
      'limitation': 'Unlabeled alerts are not confirmed faults or estimated false alarms'}])
 show_table(findings, 'evidence_action_matrix')
-note('**Recommendation 1:** Operations should pilot a human-reviewed residual triage queue at one plant, '
-     'using the frozen threshold policy and the measured workload above. Start in shadow mode; '
-     'record inspection outcomes, review time and confirmed issues before automating maintenance. '
-     '**Recommendation 2:** Plant engineering/data teams should verify units and equipment ratings, '
-     'instrument missing sensor/generation coverage, and maintain separate plant-level error/threshold '
-     'reports. This follows the scale and availability findings rather than assuming raw readings '
-     'are physically comparable. Agreement on coverage, review capacity and error tolerance is '
-     'needed before any deployment approval.')
+note('**Rekomendasi 1:** Tim operasional menguji antrean prioritas inspeksi berbasis residual pada satu pembangkit '
+     'dengan pemeriksaan manusia, aturan ambang yang dikunci, dan beban kerja terukur di atas. '
+     'Mulai dengan pemantauan tanpa tindakan otomatis; catat hasil inspeksi, waktu pemeriksaan, '
+     'dan masalah terkonfirmasi sebelum mengotomatisasi pemeliharaan. '
+     '**Rekomendasi 2:** Tim teknis/data pembangkit memverifikasi satuan dan kapasitas peralatan, '
+     'memantau cakupan sensor/data daya yang hilang, serta menjaga laporan galat dan ambang '
+     'terpisah per pembangkit. Tindakan ini mengikuti temuan skala dan ketersediaan data, '
+     'tanpa mengasumsikan pembacaan mentah sebanding secara fisik. Cakupan, kapasitas pemeriksaan, '
+     'dan toleransi galat perlu disepakati sebelum persetujuan penerapan.')
 ''')
 md('''
-## 13. Business implications, limitations and next steps
+## 13. Implikasi bisnis, keterbatasan, dan langkah selanjutnya
 
-**Expected use.** Operations receives a condition-aware review queue, data/SCADA monitors
-sensor availability, and maintenance supervisors attach inspection results. A pilot
-should log input timestamps/latency, predictions, thresholds, missing periods, episode
-IDs, review time, outcomes and costs. A separate dashboard/application is not required
-for this assessment; notebook tables are sufficient evidence for the proposed workflow.
+**Penggunaan yang diharapkan.** Tim operasional menerima antrean pemeriksaan yang
+mempertimbangkan kondisi cuaca, tim data/SCADA memantau ketersediaan sensor, dan pengawas
+pemeliharaan melampirkan hasil inspeksi. Uji coba perlu mencatat waktu dan keterlambatan
+masukan, prediksi, ambang, periode tanpa data, ID episode, waktu pemeriksaan, hasil,
+dan biaya. Dasbor atau aplikasi terpisah tidak diwajibkan untuk penilaian ini;
+tabel notebook menjadi bukti bagi alur kerja yang diusulkan.
 
-**Implementation.** Agree data-access interfaces, sensor latency, model execution budget,
-ownership, escalation and human override with plant staff. Review error/drift by plant
-and irradiation condition, plus alert workload, before choosing retraining cadence.
-Monthly retraining is not claimed optimal. Pilot acceptance needs stakeholder-approved
-coverage/error limits and manageable episodes per day; no arbitrary project result is
-treated as production certification. Integration cost and ROI are unknown without
-staffing, downtime, energy price and maintenance-cost records.
+**Penerapan.** Sepakati antarmuka akses data, keterlambatan sensor, anggaran eksekusi model,
+penanggung jawab, eskalasi, dan kewenangan operator bersama staf pembangkit. Tinjau galat,
+pergeseran pola per pembangkit dan kondisi iradiasi, serta beban peringatan sebelum
+menentukan frekuensi pelatihan ulang. Pelatihan ulang bulanan tidak diklaim optimal.
+Penerimaan uji coba memerlukan batas cakupan/galat yang disetujui pemangku kepentingan
+dan jumlah episode harian yang dapat ditangani; hasil proyek tidak dianggap sebagai
+sertifikasi siap produksi. Biaya integrasi dan tingkat pengembalian investasi (ROI)
+belum diketahui tanpa catatan tenaga kerja, waktu henti, harga energi, dan biaya pemeliharaan.
 
-**Limits.** Only 34 days and two plants; no seasonal/external-site validation. Sensor
-readings are shared plant-level exposures across many inverter rows. Raw target scales
-are inconsistent enough to require engineering verification; pooled MAE is not physical
-or financial loss. Chronological folds/test share plant and inverter identities. CV
-selection/search reuse folds and can be optimistic. Sensor missingness and daytime-only
-eligibility limit coverage; no prediction is validated for missing irradiation or night.
-Correlated/engineered features complicate attribution. Inverter ID can normalize chronic
-underperformance. No maintenance labels, failure dates, confirmed false alarms, equipment
-ratings, or weather forecasts are supplied. Associations do not establish causation.
-Public provenance identifies uploader but not the original facility owner; administrative
-uniqueness and non-UTS have been confirmed by the team on 14 October 2026; registry evidence
-has not been independently inspected in this notebook.
+**Keterbatasan.** Data hanya mencakup 34 hari dan dua pembangkit, tanpa validasi lintas
+musim atau lokasi luar. Pembacaan sensor tingkat pembangkit digunakan bersama oleh banyak
+baris inverter. Perbedaan skala target memerlukan verifikasi teknis; MAE gabungan bukan
+kerugian fisik atau finansial. Lipatan kronologis dan data uji menggunakan identitas
+pembangkit/inverter yang sama. Pemilihan dan pencarian memakai ulang lipatan validasi,
+sehingga hasil dapat terlalu optimistis. Sensor hilang dan pembatasan pengamatan siang
+membatasi cakupan; prediksi belum divalidasi pada iradiasi hilang atau malam hari.
+Korelasi dan fitur turunan mempersulit penentuan kontribusi fitur. ID inverter dapat
+menormalkan kinerja rendah kronis. Tidak tersedia label pemeliharaan, tanggal kegagalan,
+peringatan palsu terkonfirmasi, kapasitas peralatan, atau prakiraan cuaca. Hubungan
+statistik tidak membuktikan sebab-akibat. Sumber publik mengidentifikasi pengunggah,
+tetapi bukan pemilik fasilitas asli. Keunikan dataset dan tidak digunakannya dataset
+UTS telah dikonfirmasi tim pada 14 Oktober 2026; bukti registrasi belum diperiksa
+secara independen dalam notebook ini.
 
-**Next steps.** Verify metadata/licensing and source units, collect >=1 year with equipment
-ratings and maintenance logs, validate the queue with operator outcomes and costs, and
-evaluate plant transfer separately. Next-day generation forecasting would require a new
-prediction origin/horizon, available weather forecasts (including a defensible module
-temperature estimate), forecasting baselines and horizon-specific backtesting. A
-before-after pilot alone cannot attribute changes to maintenance without addressing
-weather/operations confounding.
+**Langkah selanjutnya.** Verifikasi metadata, lisensi, dan satuan sumber; kumpulkan data
+sedikitnya satu tahun beserta kapasitas peralatan dan catatan pemeliharaan; validasi
+antrean dengan hasil pemeriksaan operator serta biaya; dan evaluasi penerapan lintas
+pembangkit secara terpisah. Peramalan daya hari berikutnya memerlukan waktu asal dan
+horizon prediksi baru, prakiraan cuaca yang tersedia saat prediksi dibuat termasuk
+estimasi temperatur modul yang dapat dipertanggungjawabkan, model acuan peramalan,
+serta pengujian historis sesuai horizon. Uji coba sebelum-sesudah saja tidak dapat
+mengaitkan perubahan dengan pemeliharaan tanpa memperhitungkan pengaruh cuaca dan operasi.
 ''')
 md('''
-## 14. Reproducibility and assessment self-review
+## 14. Reproduksibilitas dan tinjauan mandiri penilaian
 
-This notebook includes all 13 required analytical sections plus this verification block.
-CSV hashes fix the actual dataset version; inputs use one relative data path. No hidden
-download, login, earlier-session variables or external module is required. The notebook
-writes reporting tables/figures under `outputs/` for slide reuse. Full model fitting uses
-all eligible rows; fixed sampling is limited to graphics and post-selection attribution.
-Notebook execution automatically runs the checks below. A clean-kernel verification and
-rubric review are recorded separately in `NOTEBOOK_REVIEW.md`.
+Notebook ini memuat seluruh 13 bagian analisis yang diwajibkan beserta bagian verifikasi.
+Hash CSV mengidentifikasi versi data yang digunakan; masukan memakai satu lokasi data
+relatif. Tidak diperlukan unduhan tersembunyi, login, variabel sesi sebelumnya, atau
+modul eksternal proyek. Tabel dan grafik disimpan dalam `outputs/` untuk digunakan
+kembali pada slide. Pelatihan model memakai seluruh baris yang memenuhi syarat;
+pengambilan sampel tetap hanya digunakan untuk grafik dan interpretasi setelah seleksi.
+Eksekusi notebook menjalankan pemeriksaan di bawah secara otomatis. Verifikasi kernel
+bersih dan review rubrik dicatat terpisah dalam `NOTEBOOK_REVIEW.md`.
 
-**Submission boundary:** this task covers the notebook and supporting data/reproducibility.
-The full assignment also needs final slides, actual per-member contributions, archived
-registry evidence (registration / uniqueness / non-UTS confirmed by the team),
-stakeholder-panel participation and interview ownership.
-Do not claim these from notebook execution. Deadline: 19 October 2026, 20.00 WIB; technical
-interview: 26 October 2026. Group 7 presents third in Meeting 15 (panel Group 3), and serves
-as panel for Group 3 in Meeting 14.
+**Batas pengerjaan:** tugas ini mencakup notebook, data pendukung, dan reproduksibilitas.
+Pengumpulan lengkap juga memerlukan slide akhir, kontribusi aktual tiap anggota, arsip
+bukti registrasi (pendaftaran, keunikan, dan tidak digunakannya dataset UTS telah
+dikonfirmasi tim), partisipasi panel pemangku kepentingan, dan penguasaan saat wawancara.
+Hal-hal tersebut tidak dibuktikan oleh eksekusi notebook. Tenggat: 19 Oktober 2026,
+20.00 WIB; wawancara teknis: 26 Oktober 2026. Kelompok 7 menjadi presenter urutan ketiga
+pada Pertemuan 15 dengan panel Kelompok 3, serta menjadi panel untuk Kelompok 3 pada Pertemuan 14.
 ''')
 code('''
 checks = {
@@ -1028,9 +1070,9 @@ summary = {'selected_model': chosen['candidate'], 'test': final_scores.to_dict('
     'environment': environment, 'checks': checks, 'utc_completed': datetime.now(timezone.utc).isoformat()}
 (OUT / 'run_summary.json').write_text(json.dumps(summary, indent=2, default=str))
 print(f'Completed full notebook in {summary["run_seconds"]:.1f} seconds; all checks passed.')
-note('**Review boundary:** passing these computational checks is evidence for the notebook, '
-     'not a score guarantee. Registration, original-source suitability, rights, individual '
-     'ownership and complete submission remain separately verifiable requirements.')
+note('**Batas review:** keberhasilan pemeriksaan komputasi menjadi bukti untuk notebook, '
+     'bukan jaminan nilai. Registrasi, kelayakan sumber asli, hak penggunaan, penguasaan '
+     'individual, dan kelengkapan pengumpulan tugas tetap memerlukan bukti tersendiri.')
 ''')
 
 if __name__ == '__main__':

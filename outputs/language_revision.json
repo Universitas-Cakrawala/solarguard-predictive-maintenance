@@ -1,0 +1,11 @@
+{
+  "language": "id",
+  "markdown_cells_translated": 17,
+  "code_cells_with_narrative_only_changes": 10,
+  "markdown_outputs_translated": 11,
+  "analytical_ast_unchanged": true,
+  "numeric_markdown_results_unchanged": true,
+  "model_refitted": false,
+  "before_sha256": "b693d3771f11c28035c057486091a0690cbf410e16ade34af0480f565887c47f",
+  "after_sha256": "913d480043a46b58c98260c2dff15b8dbd594ff859947ddc824dae98e5fe8fac"
+}

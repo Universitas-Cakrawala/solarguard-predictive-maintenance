@@ -58,6 +58,12 @@ An isolated dry-run of the corrected recommendation/alert-reporting cell, using 
 
 `Group7_SolarGuard_Notebook.zip` is a notebook-only handoff containing the executed report, four exact CSVs, metadata, reporting evidence, requirements and helper scripts. It is intentionally distinct from the final course package `Group7_SolarGuard_PredictiveAnalytics.zip`, which still requires the final slides and confirmed actual member contributions.
 
+## Indonesian narrative revision - 14 October 2026
+
+At the team's request, all 17 Markdown cells and all 11 rendered Markdown explanations were translated into Indonesian. Section titles, methodological reasoning, result interpretation, recommendations and limitations now use Indonesian consistently; dataset/model identifiers and necessary technical names are retained. The authoring source was updated so rebuilding or rerunning keeps the same language.
+
+Ten code cells changed only in the arguments of the narrative-display helper `note()`. AST comparison verified that analytical computation outside those narrative arguments is unchanged, and every numeric value in the translated Markdown outputs was preserved. Existing execution counts, predictions, metrics, tables and figures remain intact. Models were not refitted for this editorial revision. The translation checks are stored in `outputs/language_revision.json`; artifact verification and the notebook-only ZIP are refreshed afterward.
+
 ## Evidence still requiring the team
 
 - Archive registry evidence with group/member details; registration, uniqueness and non-UTS have been confirmed by the team.

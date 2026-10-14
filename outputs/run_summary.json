@@ -5,7 +5,7 @@
       "model": "Random Forest [tuned]",
       "n": 16588,
       "MAE": 196.01941911292587,
-      "RMSE": 502.7763215420696,
+      "RMSE": 502.77632154206964,
       "R2": 0.9788511324953356,
       "bias_actual_minus_pred": 36.59302381791791
     },
@@ -29,7 +29,7 @@
     "Gradient Boosting",
     "Random Forest"
   ],
-  "run_seconds": 464.3887378360005,
+  "run_seconds": 515.5696483870015,
   "environment": {
     "numpy": "2.5.2",
     "pandas": "3.0.5",
@@ -57,5 +57,5 @@
     "thresholds locked from development": "True",
     "per-plant test reporting": true
   },
-  "utc_completed": "2026-10-14T12:30:16.049195+00:00"
+  "utc_completed": "2026-10-14T14:54:52.488091+00:00"
 }

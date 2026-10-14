@@ -11,5 +11,5 @@
   ],
   "test_metrics_recomputed_from_predictions": true,
   "alert_logic_verified": true,
-  "notebook_sha256": "11d557c9e79e08f2cba55cad97da91b44bf9c94dfe128cdf6893fe24e6d372e9"
+  "notebook_sha256": "913d480043a46b58c98260c2dff15b8dbd594ff859947ddc824dae98e5fe8fac"
 }
