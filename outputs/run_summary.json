@@ -5,7 +5,7 @@
       "model": "Random Forest [tuned]",
       "n": 16588,
       "MAE": 196.01941911292587,
-      "RMSE": 502.7763215420696,
+      "RMSE": 502.77632154206964,
       "R2": 0.9788511324953356,
       "bias_actual_minus_pred": 36.59302381791791
     },
@@ -44,7 +44,7 @@
     "Gradient Boosting",
     "Random Forest"
   ],
-  "run_seconds": 562.3395658789996,
+  "run_seconds": 352.7553629160011,
   "environment": {
     "numpy": "2.5.2",
     "pandas": "3.0.5",
@@ -75,5 +75,5 @@
     "consistent sample SD for tuning comparison": true,
     "supplemental baseline excluded from model selection": true
   },
-  "utc_completed": "2026-10-14T15:28:03.602672+00:00"
+  "utc_completed": "2026-10-14T15:47:13.441300+00:00"
 }

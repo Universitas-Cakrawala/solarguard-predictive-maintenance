@@ -47,7 +47,7 @@
     },
     {
       "PLANT_ID": "4136001",
-      "gap_threshold": 917.4306655689732,
+      "gap_threshold": 917.4306655689729,
       "min_expected": 140.59358357772402,
       "persistence_intervals": 3,
       "oof_rows": 22166,
@@ -55,7 +55,7 @@
     }
   ],
   "locked_before_test_prediction": true,
-  "utc_lock_time": "2026-10-14T15:27:44.121147+00:00",
+  "utc_lock_time": "2026-10-14T15:46:59.151191+00:00",
   "evaluation_status": "reproduction_after_test_exposure",
   "supplemental_baseline_used_for_selection": false,
   "original_lock_time": "2026-10-14T11:57:36.679987+00:00"
