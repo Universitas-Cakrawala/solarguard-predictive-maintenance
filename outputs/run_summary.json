@@ -1,0 +1,61 @@
+{
+  "selected_model": "Random Forest [tuned]",
+  "test": [
+    {
+      "model": "Random Forest [tuned]",
+      "n": 16588,
+      "MAE": 196.01941911292587,
+      "RMSE": 502.7763215420696,
+      "R2": 0.9788511324953356,
+      "bias_actual_minus_pred": 36.59302381791791
+    },
+    {
+      "model": "Mean baseline",
+      "n": 16588,
+      "MAE": 3070.496241418311,
+      "RMSE": 3488.0082045721556,
+      "R2": -0.017870387077219663,
+      "bias_actual_minus_pred": -462.1662607773756
+    }
+  ],
+  "test_MAE_reduction_vs_baseline_pct": 93.61603455269558,
+  "rows_generation": 136476,
+  "rows_daytime": 77098,
+  "rows_development": 60510,
+  "rows_test": 16588,
+  "days_development": 27,
+  "days_test": 7,
+  "tuned_models": [
+    "Gradient Boosting",
+    "Random Forest"
+  ],
+  "run_seconds": 464.3887378360005,
+  "environment": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "matplotlib": "3.11.1",
+    "seaborn": "0.13.2",
+    "scipy": "1.18.0",
+    "nbformat": "5.11.1",
+    "nbclient": "0.11.0",
+    "ipykernel": "7.3.0",
+    "threadpoolctl": "3.6.0"
+  },
+  "checks": {
+    "four exact CSV files loaded": true,
+    "minimum tabular size and predictors": true,
+    "no target/proxy in features": true,
+    "no join multiplication": true,
+    "strict chronological holdout": true,
+    "five grouped-date folds": true,
+    "all required model families": true,
+    "two strongest non-baseline tuned": true,
+    "at least two tuning parameters each": true,
+    "test predictions finite": "True",
+    "three findings and two recommendations": true,
+    "thresholds locked from development": "True",
+    "per-plant test reporting": true
+  },
+  "utc_completed": "2026-10-14T12:30:16.049195+00:00"
+}

@@ -1,0 +1,59 @@
+{
+  "selected": "Random Forest [tuned]",
+  "selected_CV_MAE": 290.6200656839228,
+  "metric": "mean_fold_MAE_original_scale",
+  "features": [
+    "IRRADIATION",
+    "AMBIENT_TEMPERATURE",
+    "MODULE_TEMPERATURE",
+    "HOUR_SIN",
+    "HOUR_COS",
+    "TEMP_GAP",
+    "IRR_TEMP_INTERACTION",
+    "IRR_SQUARED",
+    "PLANT_ID",
+    "INVERTER_ID"
+  ],
+  "horizon": 0,
+  "seed": 42,
+  "parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "criterion": "squared_error",
+    "max_depth": 20,
+    "max_features": 1.0,
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 2,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 100,
+    "n_jobs": 4,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "thresholds": [
+    {
+      "PLANT_ID": "4135001",
+      "gap_threshold": 1576.9961615195143,
+      "min_expected": 2208.3609225845125,
+      "persistence_intervals": 3,
+      "oof_rows": 22869,
+      "positive_gap_rows": 10957
+    },
+    {
+      "PLANT_ID": "4136001",
+      "gap_threshold": 917.4306655689729,
+      "min_expected": 140.59358357772402,
+      "persistence_intervals": 3,
+      "oof_rows": 22166,
+      "positive_gap_rows": 8784
+    }
+  ],
+  "locked_before_test_prediction": true,
+  "utc_lock_time": "2026-10-14T12:29:56.784827+00:00"
+}

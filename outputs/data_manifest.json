@@ -1,0 +1,54 @@
+[
+  {
+    "file": "Plant_1_Generation_Data.csv",
+    "rows": 68778,
+    "columns": 7,
+    "start": "2020-05-15 00:00:00",
+    "end": "2020-06-17 23:45:00",
+    "days": 34,
+    "plants": 1,
+    "source_keys": 22,
+    "datetime_parse_failures": 0,
+    "sha256": "882f75f1c295946633617646cc92343ddb6fb821a2546c82f7e5cc737a13624e",
+    "bytes": 4839076
+  },
+  {
+    "file": "Plant_1_Weather_Sensor_Data.csv",
+    "rows": 3182,
+    "columns": 6,
+    "start": "2020-05-15 00:00:00",
+    "end": "2020-06-17 23:45:00",
+    "days": 34,
+    "plants": 1,
+    "source_keys": 1,
+    "datetime_parse_failures": 0,
+    "sha256": "91325041328745c288cb809aebd8b1b59cde54284500902ead1fb393499d6806",
+    "bytes": 287847
+  },
+  {
+    "file": "Plant_2_Generation_Data.csv",
+    "rows": 67698,
+    "columns": 7,
+    "start": "2020-05-15 00:00:00",
+    "end": "2020-06-17 23:45:00",
+    "days": 34,
+    "plants": 1,
+    "source_keys": 22,
+    "datetime_parse_failures": 0,
+    "sha256": "9b735e9278774d4d1dd4601047315ef50b3793244d892446f6aabf4fae63bd37",
+    "bytes": 5805157
+  },
+  {
+    "file": "Plant_2_Weather_Sensor_Data.csv",
+    "rows": 3259,
+    "columns": 6,
+    "start": "2020-05-15 00:00:00",
+    "end": "2020-06-17 23:45:00",
+    "days": 34,
+    "plants": 1,
+    "source_keys": 1,
+    "datetime_parse_failures": 0,
+    "sha256": "cafd80885a51b88521b3301cffa4e4f013e2516fcb3478b439a81855edac3a64",
+    "bytes": 301443
+  }
+]

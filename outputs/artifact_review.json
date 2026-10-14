@@ -1,0 +1,15 @@
+{
+  "nbformat_valid": true,
+  "executed_code_cells": 15,
+  "errors": 0,
+  "embedded_png_outputs": 11,
+  "required_sections": 13,
+  "dataset_hashes_verified": 4,
+  "top_two_tuning_verified": [
+    "Gradient Boosting",
+    "Random Forest"
+  ],
+  "test_metrics_recomputed_from_predictions": true,
+  "alert_logic_verified": true,
+  "notebook_sha256": "11d557c9e79e08f2cba55cad97da91b44bf9c94dfe128cdf6893fe24e6d372e9"
+}
