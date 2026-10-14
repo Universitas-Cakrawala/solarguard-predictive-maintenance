@@ -54,7 +54,6 @@ kaggle.json
 *.key
 credentials/
 secrets/
-scripts/
 
 # ------------------------------------------------------------------------------
 # 5. Dataset, Arsip & Data Cache

@@ -30,6 +30,17 @@ The notebook is self-contained. `scripts/build_notebook.py` is its editable auth
 
 `Group7_SolarGuard_Notebook.zip` bundles the executed notebook, exact data and supporting files for this notebook task. It is not the complete course-submission ZIP. Final verification: 15 executable cells passed from a fresh kernel, with 11 embedded figures and no cell errors; see `NOTEBOOK_REVIEW.md` for results and limitations.
 
+The notebook also reports a supplemental training-only mean baseline per plant, on the same chronological folds and test rows. This comparison was added after test exposure and does not reselect the final model. Reported fold standard deviations consistently use ddof=1; fold-wise paired tuning differences are descriptive, not significance tests. See `outputs/baseline_cv_comparison.csv`, `outputs/paired_default_vs_tuned_folds.csv` and `outputs/final_test_baseline_comparison_by_plant.csv` after execution.
+
+After any rerun or notebook edit, refresh verification and the archive in this order:
+
+```bash
+python scripts/review_notebook.py
+python scripts/package_notebook.py
+```
+
+Packaging rejects a stale notebook hash and verifies every archived file against the workspace. `outputs/artifact_review.json` describes the current snapshot; initial selection, pre-strengthening predictions and language-revision records are historical evidence.
+
 Raw CSVs and reporting CSVs follow the repository's existing Git ignore rules; include the data files explicitly in the final course ZIP. The team confirmed registration, dataset uniqueness and non-UTS on 14 October 2026; archive registry evidence separately. Slides, member contribution confirmation, stakeholder participation, interview and RISE upload are separate from notebook completion.
 
 Submission deadline: **19 October 2026, 20.00 WIB**. Full package name: `Group7_SolarGuard_PredictiveAnalytics.zip`.

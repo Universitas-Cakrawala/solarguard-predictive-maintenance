@@ -11,5 +11,10 @@
   ],
   "test_metrics_recomputed_from_predictions": true,
   "alert_logic_verified": true,
-  "notebook_sha256": "913d480043a46b58c98260c2dff15b8dbd594ff859947ddc824dae98e5fe8fac"
+  "authoring_source_matches_notebook": true,
+  "plant_baseline_training_means_independently_verified": true,
+  "consistent_sample_SD_ddof": 1,
+  "predictions_unchanged_from_pre_strengthening": true,
+  "test_exposure_disclosed": true,
+  "notebook_sha256": "9b9573553a5f59ee6e4560fffa55e028519dd589ffaef63a7b2aee2abaa8e613"
 }

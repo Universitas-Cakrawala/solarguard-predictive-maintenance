@@ -80,7 +80,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from IPython.display import display, Markdown
-from sklearn.base import clone
+from sklearn.base import clone, BaseEstimator, RegressorMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
@@ -354,8 +354,10 @@ masukan model. Rasio DC/AC di bawah tidak cukup untuk menentukan faktor koreksi.
 Satuan DC_POWER asli dipertahankan; model gabungan menggunakan identitas pembangkit,
 kemudian galat dilaporkan per pembangkit. Tujuan utama adalah MAE gabungan pada skala
 asli, dihitung sebagai rata-rata MAE setiap lipatan validasi. Tolok ukur ini memberi
-bobot yang sama pada setiap pengamatan, tetapi secara numerik didominasi pembangkit
-dengan skala lebih besar. Nilainya bukan kerugian fisik atau tujuan ekonomi yang
+bobot yang sama pada setiap lipatan; di dalam lipatan, setiap pengamatan berbobot sama.
+Karena ukuran lipatan berbeda, bobot setiap baris tidak persis sama pada seluruh data
+pengembangan. Skor secara numerik didominasi pembangkit dengan skala lebih besar.
+Nilainya bukan kerugian fisik atau tujuan ekonomi yang
 sebanding antar pembangkit. Batas ini ditetapkan sebelum perbandingan kandidat;
 MAE per pembangkit dan MAE yang dinormalisasi terhadap rata-rata target data
 pengembangan masing-masing pembangkit menjadi bukti pelengkap.
@@ -514,14 +516,43 @@ Semua inverter/pembangkit pada tanggal yang sama berada dalam bagian yang sama.
 Jeda=0 sesuai untuk estimasi pada waktu yang sama, tanpa fitur tertunda atau label
 masa depan yang tumpang tindih. Riwayat pelatihan bertambah pada lipatan berikutnya.
 
-Model acuan rata-rata hanya mempelajari rata-rata target pelatihan. **Metrik utama:**
+Model acuan rata-rata gabungan hanya mempelajari rata-rata target pelatihan. Pembanding
+tambahan mempelajari rata-rata **per pembangkit**, sehingga perbedaan skala tidak
+sepenuhnya menguntungkan model terlatih. Rata-rata ini dihitung ulang hanya dari bagian
+pelatihan setiap lipatan; kategori baru memakai rata-rata gabungan pelatihan sebagai
+cadangan. Pembanding tambahan memakai lipatan dan baris identik, tetapi hanya memerlukan
+ID pembangkit; fitur cuaca tidak digunakan oleh model konstan ini.
+
+**Metrik utama:**
 rata-rata MAE tiap lipatan; **metrik sekunder:** RMSE, dengan R² sebagai pendukung.
 MAPE tidak digunakan karena terdapat nilai nol atau mendekati nol. Perbandingan yang
 adil menggunakan lipatan, baris, dan fitur identik untuk semua kandidat. Variasi antar
 lipatan menggambarkan ketidakpastian deskriptif, bukan interval kepercayaan dengan
 asumsi pengamatan saling independen dan berdistribusi identik.
+
+**Status evaluasi tambahan:** pembanding per pembangkit ditambahkan setelah data uji
+pernah diperiksa. Hasilnya merupakan analisis pelengkap, bukan evaluasi independen baru
+atau dasar untuk memilih ulang model/fitur/ambang. Evaluasi sebelumnya direproduksi
+dengan protokol yang sama; validasi baru diperlukan jika model dikembangkan lebih lanjut.
+
+Semua simpangan baku antarlipatan pada tabel perbandingan memakai **ddof=1**. Simpangan
+baku ini merangkum lima hasil kronologis, bukan galat baku atau interval kepercayaan.
+Jendela pelatihan bertumpang tindih dan data berautokorelasi, sehingga simpangan baku
+tidak dapat dipakai langsung sebagai uji signifikansi atau dibagi akar jumlah baris.
 ''')
 code('''
+class PlantMeanRegressor(RegressorMixin, BaseEstimator):
+    # No fitted preprocessing: only target means from the training partition.
+    def fit(self, X, y):
+        frame = pd.DataFrame({'plant': X['PLANT_ID'].to_numpy(), 'target': np.asarray(y)})
+        self.means_ = frame.groupby('plant').target.mean()
+        self.fallback_ = float(frame.target.mean())
+        self.n_features_in_ = X.shape[1]
+        return self
+
+    def predict(self, X):
+        return X['PLANT_ID'].map(self.means_).fillna(self.fallback_).to_numpy(dtype=float)
+
 cv_splits, fold_rows = [], []
 ordered_dates = np.sort(dev.DATE.unique())
 for fold, (tr_d, va_d) in enumerate(TimeSeriesSplit(n_splits=5).split(ordered_dates), 1):
@@ -561,9 +592,24 @@ def evaluate_cv(name, pipe):
 baseline_pipe = make_pipeline(DummyRegressor(strategy='mean'))
 base_folds, base_plant, base_oof = evaluate_cv('Mean baseline', baseline_pipe)
 show_table(base_folds, 'baseline_cv_folds')
+plant_baseline = PlantMeanRegressor()
+plant_base_folds, plant_base_scores, plant_base_oof = evaluate_cv('Plant mean baseline', plant_baseline)
+show_table(plant_base_folds, 'plant_mean_baseline_cv_folds')
+show_table(plant_base_scores, 'plant_mean_baseline_cv_by_plant')
+plant_calibration = []
+for fold, (tr, va) in enumerate(cv_splits, 1):
+    for plant, part in dev.iloc[tr].groupby('PLANT_ID'):
+        plant_calibration.append({'fold': fold, 'plant': plant, 'training_rows': len(part),
+            'training_end': part.DATE_TIME.max(), 'training_mean': part.DC_POWER.mean()})
+show_table(pd.DataFrame(plant_calibration), 'plant_mean_baseline_training_audit')
+show_table(pd.concat([base_folds, plant_base_folds]).groupby('model', as_index=False).agg(
+    CV_MAE=('MAE', 'mean'), CV_MAE_SD=('MAE', 'std'), CV_RMSE=('RMSE', 'mean'),
+    CV_R2=('R2', 'mean')), 'baseline_cv_comparison')
 note(f'MAE validasi silang model acuan rata-rata pada data pengembangan = **{base_folds.MAE.mean():,.3f}** '
      f'(simpangan baku antar lipatan {base_folds.MAE.std():,.3f}), dalam satuan target asli. '
-     'Model acuan menjadi tolok ukur kinerja, bukan aturan inspeksi.')
+     f'MAE pembanding rata-rata per pembangkit = **{plant_base_folds.MAE.mean():,.3f}** '
+     f'(simpangan baku antar lipatan {plant_base_folds.MAE.std():,.3f}). '
+     'Keduanya menjadi tolok ukur kinerja, bukan aturan inspeksi. Pembanding tambahan tidak masuk seleksi ulang.')
 ''')
 md('''
 ## 8. Kandidat model
@@ -666,9 +712,11 @@ for name in selected:
     idx = search.best_index_
     base = ranking.set_index('model').loc[name]
     tuned_mae = -results.loc[idx, 'mean_test_mae']
+    best_fold_mae = np.array([-results.loc[idx, f'split{k}_test_mae'] for k in range(len(cv_splits))])
     tuning_rows.append({'model': name, 'configurations': budget, 'folds': len(cv_splits),
         'default_CV_MAE': base.CV_MAE, 'tuned_CV_MAE': tuned_mae,
-        'tuned_CV_MAE_SD': results.loc[idx, 'std_test_mae'],
+        'tuned_CV_MAE_SD': best_fold_mae.std(ddof=1),
+        'SD_ddof': 1,
         'tuned_CV_RMSE': -results.loc[idx, 'mean_test_rmse'],
         'tuned_CV_R2': results.loc[idx, 'mean_test_r2'],
         'MAE_improvement': base.CV_MAE - tuned_mae,
@@ -677,6 +725,22 @@ for name in selected:
     print(f'Best CV MAE {tuned_mae:.3f}; runtime {elapsed:.1f}s', flush=True)
 tuning = pd.DataFrame(tuning_rows)
 show_table(tuning, 'default_vs_tuned')
+paired_rows = []
+for name in selected:
+    search = searches[name]
+    result = pd.DataFrame(search.cv_results_).loc[search.best_index_]
+    for k, base in enumerate(default_folds.loc[default_folds.model.eq(name)].sort_values('fold').itertuples()):
+        paired_rows.append({'model': name, 'fold': k + 1, 'default_MAE': base.MAE,
+            'tuned_MAE': -result[f'split{k}_test_mae'],
+            'MAE_reduction_default_minus_tuned': base.MAE + result[f'split{k}_test_mae']})
+paired_tuning = pd.DataFrame(paired_rows)
+show_table(paired_tuning, 'paired_default_vs_tuned_folds')
+note('**Penjelasan statistik:** selisih berpasangan memakai lipatan identik; nilai positif berarti '
+     'penyetelan menurunkan MAE pada lipatan tersebut. Simpangan baku tabel memakai ddof=1 '
+     'untuk pengaturan awal dan hasil penyetelan. Kolom std_test_mae pada berkas mentah '
+     'cv_results_ tetap mengikuti sklearn (ddof=0), sehingga tidak dibandingkan langsung '
+     'dengan simpangan baku tabel. Lima lipatan yang bergantung tidak mendukung klaim '
+     'signifikansi atau interval kepercayaan independen dari tabel ini.')
 fig, ax = plt.subplots(figsize=(10, 4))
 tuning.set_index('model')[['default_CV_MAE', 'tuned_CV_MAE']].plot.bar(ax=ax)
 ax.set(title='Default vs tuned on identical development folds', xlabel='Selected models',
@@ -700,6 +764,10 @@ berturut-turut**. Hanya selisih positif di atas ambang yang dihitung. Kuantil da
 keberlanjutan merupakan pilihan prototipe yang ditentukan sebelumnya, bukan ambang
 optimal untuk kerusakan. Waktu pengamatan yang terputus mengulang perhitungan urutan.
 Jendela pelatihan pertama tidak memiliki prediksi OOF sehingga tidak digunakan dalam kalibrasi.
+
+Hasil test di bawah mereproduksi evaluasi awal untuk model yang tetap sama. Pembanding
+per pembangkit ditambahkan secara deskriptif setelah test pernah dilihat. Tidak ada
+perubahan ruang pencarian, objective, fitur, model terpilih, atau kebijakan peringatan.
 ''')
 code('''
 pool = []
@@ -734,6 +802,20 @@ lock = {'selected': chosen['candidate'], 'selected_CV_MAE': float(chosen['CV_MAE
     'seed': SEED, 'parameters': chosen_pipe.named_steps['model'].get_params(),
     'thresholds': threshold_rows, 'locked_before_test_prediction': True,
     'utc_lock_time': datetime.now(timezone.utc).isoformat()}
+lock['evaluation_status'] = 'reproduction_after_test_exposure'
+lock['supplemental_baseline_used_for_selection'] = False
+initial_lock_path = OUT / 'initial_selection_lock.json'
+if initial_lock_path.exists():
+    original_lock = json.loads(initial_lock_path.read_text())
+    assert chosen['candidate'] == original_lock['selected'], 'Original selection must remain unchanged'
+    assert FEATURES == original_lock['features']
+    assert {k: v for k, v in lock['parameters'].items() if k != 'n_jobs'} == {
+        k: v for k, v in original_lock['parameters'].items() if k != 'n_jobs'}
+    for original, current in zip(original_lock['thresholds'], threshold_rows):
+        assert original['PLANT_ID'] == current['PLANT_ID']
+        assert np.isclose(original['gap_threshold'], current['gap_threshold'])
+        assert np.isclose(original['min_expected'], current['min_expected'])
+    lock['original_lock_time'] = original_lock['utc_lock_time']
 (OUT / 'selection_lock.json').write_text(json.dumps(lock, indent=2, default=str))
 note(f'**Pilihan yang dikunci: {chosen["candidate"]}**, MAE validasi silang {chosen["CV_MAE"]:,.3f}. '
      'Pilihan dan aturan peringatan dicatat sebelum prediksi data uji. '
@@ -745,12 +827,17 @@ X_test, y_test = test[FEATURES], test.DC_POWER
 pred_final = final_model.predict(X_test)
 baseline_final = clone(baseline_pipe).fit(X_dev, y_dev)
 pred_baseline = baseline_final.predict(X_test)
+plant_baseline_final = clone(plant_baseline).fit(X_dev, y_dev)
+pred_plant_baseline = plant_baseline_final.predict(X_test)
 final_scores = pd.DataFrame([
     {'model': chosen['candidate'], **metrics(y_test, pred_final)},
-    {'model': 'Mean baseline', **metrics(y_test, pred_baseline)}])
+    {'model': 'Mean baseline', **metrics(y_test, pred_baseline)},
+    {'model': 'Plant mean baseline (supplemental)', **metrics(y_test, pred_plant_baseline)}])
 show_table(final_scores, 'final_test_metrics')
 test_report = test[['PLANT_ID', 'INVERTER_ID', 'DATE_TIME', 'DATE', 'IRRADIATION']].copy()
 test_report['actual'], test_report['predicted'] = y_test.to_numpy(), pred_final
+test_report['baseline_global'] = pred_baseline
+test_report['baseline_per_plant'] = pred_plant_baseline
 test_report['residual'] = test_report.actual - test_report.predicted
 test_report['abs_error'] = test_report.residual.abs()
 test_report['gap'] = -test_report.residual
@@ -765,6 +852,12 @@ for plant, idx in test_report.groupby('PLANT_ID').indices.items():
     m['MAE_over_development_mean'] = m['MAE'] / plant_means.loc[plant]
     plant_scores.append({'plant': plant, 'days': part.DATE.nunique(), **m})
 show_table(pd.DataFrame(plant_scores), 'final_test_by_plant')
+plant_comparison = []
+for plant, part in test_report.groupby('PLANT_ID'):
+    for label, column in [('Model terpilih', 'predicted'), ('Rata-rata gabungan', 'baseline_global'),
+                          ('Rata-rata per pembangkit (pelengkap)', 'baseline_per_plant')]:
+        plant_comparison.append({'plant': plant, 'approach': label, **metrics(part.actual, part[column])})
+show_table(pd.DataFrame(plant_comparison), 'final_test_baseline_comparison_by_plant')
 for column in ['INVERTER_ID', 'hour', 'irradiation_band', 'DATE']:
     rows = []
     for key, part in test_report.groupby(['PLANT_ID', column], observed=True):
@@ -773,9 +866,13 @@ for column in ['INVERTER_ID', 'hour', 'irradiation_band', 'DATE']:
     show_table(table, 'final_error_by_' + column.lower())
 test_report.to_csv(OUT / 'final_test_predictions.csv', index=False)
 test_gain = 100 * (final_scores.iloc[1].MAE - final_scores.iloc[0].MAE) / final_scores.iloc[1].MAE
-note(f'**Pengujian akhir independen:** MAE model terpilih {final_scores.iloc[0].MAE:,.3f}, '
+plant_baseline_gain = 100 * (1 - final_scores.iloc[0].MAE / final_scores.iloc[2].MAE)
+note(f'**Reproduksi hasil test dan pembanding pelengkap:** MAE model terpilih {final_scores.iloc[0].MAE:,.3f}, '
      f'RMSE {final_scores.iloc[0].RMSE:,.3f}, R² {final_scores.iloc[0].R2:.4f}; '
-     f'penurunan MAE terhadap model acuan rata-rata {test_gain:.2f}%. '
+     f'penurunan MAE terhadap model acuan rata-rata gabungan {test_gain:.2f}%, '
+     f'dan terhadap rata-rata per pembangkit {plant_baseline_gain:.2f}%. '
+     'Pembanding per pembangkit ditambahkan setelah test diperiksa; hasil ini tidak '
+     'merupakan evaluasi independen baru dan tidak dipakai untuk memilih ulang model. '
      'Nilai ini hanya menggambarkan pengamatan siang pada data uji dari pembangkit yang dikenal. '
      f'Prediksi negatif: {(pred_final < 0).sum():,}; prediksi tidak dibatasi setelah evaluasi.')
 ''')
@@ -846,6 +943,29 @@ Penyetelan Random Forest mengubah MAE validasi silang dari sekitar 294,84 menjad
 pengaturan awalnya, sekitar 354,05 dibandingkan 294,00. Aturan MAE validasi silang
 terendah memilih Random Forest hasil penyetelan, tetapi keunggulan kecil dibandingkan
 variasi antar lipatan tidak membuktikan keunggulan yang signifikan secara statistik.
+
+Keunggulan model terpilih terhadap Gradient Boosting awal hanya sekitar 3,38 satuan
+MAE validasi silang (1,15%). Pemilihan mengikuti objective yang telah ditentukan,
+bukan bukti bahwa algoritma tersebut secara umum lebih unggul. Representasi linear
+yang diuji bersifat aditif: one-hot pembangkit mengubah intersep, tetapi tidak memberi
+kemiringan cuaca–daya tersendiri untuk setiap pembangkit. Interaksi pembangkit–cuaca
+atau model linear per pembangkit dapat menjadi pembanding penelitian berikutnya,
+dengan validasi baru; keduanya tidak ditambahkan setelah melihat test pada penelitian ini.
+
+Pembanding rata-rata per pembangkit menghasilkan MAE test sekitar 1.661,95 dibandingkan
+3.070,50 untuk rata-rata gabungan. Penurunan MAE model final sekitar 88,21% terhadap
+pembanding per pembangkit, atau 93,62% terhadap rata-rata gabungan. Persentase harus
+selalu menyebut pembandingnya. Angka pelengkap ini dihitung setelah test pernah dilihat
+dan tidak dipakai untuk memilih ulang model atau menyatakan evaluasi independen baru.
+
+MAE CV sekitar 290,62 dan MAE test sekitar 196,02 berasal dari periode serta komposisi
+pengamatan yang berbeda; selisih keduanya bukan ukuran manfaat penyetelan. Perbaikan
+penyetelan dihitung dari default dan tuned pada fold yang sama. MAE test gabungan
+memberi bobot sama pada seluruh baris test, sedangkan objective CV merata-ratakan
+MAE tiap fold. R² gabungan bukan rata-rata R² per pembangkit dan bukan persentase
+akurasi; nilainya bergantung pada variasi target, termasuk perbedaan antarplant.
+Kolom CV_R2 hanya merangkum rata-rata R² antarfold sebagai bukti pendukung, bukan
+R² dari seluruh prediksi yang digabungkan.
 
 R² gabungan pada data uji sekitar 0,979, sedangkan **R² Plant 1 sebesar 0,964 dan R²
 Plant 2 hanya 0,390**. MAE relatif terhadap rata-rata target data pengembangan masing-masing
@@ -949,7 +1069,8 @@ alerts.to_csv(OUT / 'test_alert_predictions.csv', index=False)
 findings = pd.DataFrame([
     {'finding': 'Model accuracy on newer dates',
      'evidence': f'{chosen["candidate"]}; test MAE={final_scores.iloc[0].MAE:.3f}, '
-                 f'RMSE={final_scores.iloc[0].RMSE:.3f}, reduction vs baseline={test_gain:.2f}%',
+                 f'RMSE={final_scores.iloc[0].RMSE:.3f}; reduction vs pooled mean={test_gain:.2f}%; '
+                 f'vs plant mean (supplemental)={plant_baseline_gain:.2f}%',
      'action': 'Use actual-vs-expected monitoring in shadow mode, reviewed by operator',
      'stakeholder': 'Operations Manager', 'value': 'Condition-aware prioritization',
      'limitation': 'Horizon 0, known plants, not failure prediction'},
@@ -971,7 +1092,9 @@ findings = pd.DataFrame([
      'stakeholder': 'Maintenance supervisor', 'value': 'Measure feasibility before production rollout',
      'limitation': 'Unlabeled alerts are not confirmed faults or estimated false alarms'}])
 show_table(findings, 'evidence_action_matrix')
-note('**Rekomendasi 1:** Tim operasional menguji antrean prioritas inspeksi berbasis residual pada satu pembangkit '
+note('**Rekomendasi 1:** Tim operasional memprioritaskan Plant 1 untuk uji coba antrean inspeksi berbasis residual, '
+     'karena R² dan MAE relatifnya lebih baik; Plant 2 memerlukan investigasi tambahan atas '
+     'ketidaksesuaian daya nol sebelum penerapan lebih luas. Uji coba dilakukan '
      'dengan pemeriksaan manusia, aturan ambang yang dikunci, dan beban kerja terukur di atas. '
      'Mulai dengan pemantauan tanpa tindakan otomatis; catat hasil inspeksi, waktu pemeriksaan, '
      'dan masalah terkonfirmasi sebelum mengotomatisasi pemeliharaan. '
@@ -1060,10 +1183,18 @@ checks = {
     'thresholds locked from development': thresholds.oof_rows.sum() == len(selected_oof),
     'per-plant test reporting': len(plant_scores) == dev.PLANT_ID.nunique()
 }
+checks['supplemental baseline on identical five folds'] = len(plant_base_folds) == len(cv_splits)
+checks['consistent sample SD for tuning comparison'] = tuning.SD_ddof.eq(1).all()
+checks['supplemental baseline excluded from model selection'] = not lock['supplemental_baseline_used_for_selection']
+checks = {key: bool(value) for key, value in checks.items()}
 assert all(checks.values()), checks
 show_table(pd.DataFrame({'check': list(checks), 'passed': list(checks.values())}), 'verification_checks')
 summary = {'selected_model': chosen['candidate'], 'test': final_scores.to_dict('records'),
     'test_MAE_reduction_vs_baseline_pct': float(test_gain),
+    'test_MAE_reduction_vs_plant_baseline_pct': float(plant_baseline_gain),
+    'evaluation_status': 'reproduction_after_test_exposure',
+    'statistical_reporting': {'fold_weighting': 'equal_folds', 'SD_ddof': 1,
+        'confidence_intervals_or_significance_claims': False},
     'rows_generation': len(gen), 'rows_daytime': len(panel), 'rows_development': len(dev),
     'rows_test': len(test), 'days_development': dev.DATE.nunique(), 'days_test': test.DATE.nunique(),
     'tuned_models': selected, 'run_seconds': time.perf_counter() - RUN_START,

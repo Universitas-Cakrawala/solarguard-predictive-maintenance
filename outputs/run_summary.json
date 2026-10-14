@@ -5,7 +5,7 @@
       "model": "Random Forest [tuned]",
       "n": 16588,
       "MAE": 196.01941911292587,
-      "RMSE": 502.77632154206964,
+      "RMSE": 502.7763215420696,
       "R2": 0.9788511324953356,
       "bias_actual_minus_pred": 36.59302381791791
     },
@@ -16,9 +16,24 @@
       "RMSE": 3488.0082045721556,
       "R2": -0.017870387077219663,
       "bias_actual_minus_pred": -462.1662607773756
+    },
+    {
+      "model": "Plant mean baseline (supplemental)",
+      "n": 16588,
+      "MAE": 1661.9450614697753,
+      "RMSE": 2570.175910181001,
+      "R2": 0.4473334480102489,
+      "bias_actual_minus_pred": -396.2795096194771
     }
   ],
   "test_MAE_reduction_vs_baseline_pct": 93.61603455269558,
+  "test_MAE_reduction_vs_plant_baseline_pct": 88.2054212466222,
+  "evaluation_status": "reproduction_after_test_exposure",
+  "statistical_reporting": {
+    "fold_weighting": "equal_folds",
+    "SD_ddof": 1,
+    "confidence_intervals_or_significance_claims": false
+  },
   "rows_generation": 136476,
   "rows_daytime": 77098,
   "rows_development": 60510,
@@ -29,7 +44,7 @@
     "Gradient Boosting",
     "Random Forest"
   ],
-  "run_seconds": 515.5696483870015,
+  "run_seconds": 562.3395658789996,
   "environment": {
     "numpy": "2.5.2",
     "pandas": "3.0.5",
@@ -52,10 +67,13 @@
     "all required model families": true,
     "two strongest non-baseline tuned": true,
     "at least two tuning parameters each": true,
-    "test predictions finite": "True",
+    "test predictions finite": true,
     "three findings and two recommendations": true,
-    "thresholds locked from development": "True",
-    "per-plant test reporting": true
+    "thresholds locked from development": true,
+    "per-plant test reporting": true,
+    "supplemental baseline on identical five folds": true,
+    "consistent sample SD for tuning comparison": true,
+    "supplemental baseline excluded from model selection": true
   },
-  "utc_completed": "2026-10-14T14:54:52.488091+00:00"
+  "utc_completed": "2026-10-14T15:28:03.602672+00:00"
 }

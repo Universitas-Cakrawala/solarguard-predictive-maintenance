@@ -1,74 +1,179 @@
-# Notebook review - SolarGuard, Kelompok 7
+# Peninjauan Notebook SolarGuard — Kelompok 7
 
-Reference: `Predictive Analytics Group Project Brief and Assessment Rubric Revised.pdf`, all 11 pages, especially notebook sections and minimum regression models on pp. 4-5, validation/tuning/insights/reproducibility on p. 6, rubric on pp. 10-11. Implementation follows `planning/PLAN.md`.
+## Acuan dan ruang lingkup peninjauan
 
-This review distinguishes implemented notebook evidence from administrative and group-delivery requirements. It is not a predicted mark. On 14 October 2026, the team confirmed registration, uniqueness among groups and non-reuse of any member's midterm dataset in the project conversation. This is team confirmation, not an independent registry audit; individual contributions/ownership still require confirmation.
+Peninjauan ini membandingkan bukti dalam notebook dengan seluruh 11 halaman
+`Predictive Analytics Group Project Brief and Assessment Rubric Revised.pdf`, terutama
+ketentuan notebook dan model regresi minimum pada halaman 4–5, validasi, penyetelan,
+temuan, dan reproduktibilitas pada halaman 6, serta rubrik pada halaman 10–11.
+Implementasi mengikuti `planning/PLAN.md`.
 
-## Evidence map
+Dokumen ini membedakan bukti yang telah diterapkan dalam notebook dari persyaratan
+administratif dan pelaksanaan kelompok. Dokumen ini bukan prediksi nilai. Pada
+14 Oktober 2026, kelompok mengonfirmasi bahwa dataset telah didaftarkan, berbeda dari
+kelompok lain, dan bukan dataset UTS salah satu anggota. Pernyataan tersebut merupakan
+konfirmasi kelompok, bukan audit independen terhadap daftar registrasi.
 
-| Rubric criterion | Weight | Notebook evidence | Remaining boundary |
+## Kesimpulan peninjauan
+
+Notebook telah menerapkan alur analisis yang diminta dan berhasil dijalankan dari
+kernel bersih. Bukti eksekusi menunjukkan 32 sel, 15 sel kode, tanpa keluaran error,
+dan 11 grafik tertanam. Seluruh 13 bagian analitis yang diwajibkan tersedia, beserta
+bagian reproduktibilitas dan peninjauan.
+
+Model final tetap Random Forest hasil penyetelan dengan MAE pengujian 196,019, RMSE
+502,776, dan R² 0,978851. Penambahan pembanding rata-rata per pembangkit, penjelasan
+statistik, dan sinkronisasi artefak tidak mengubah fitur, pembagian data, parameter
+model terpilih, anggaran pencarian, ambang alert, maupun prediksi model final.
+
+Notebook layak menjadi bukti konsep estimasi daya saat kondisi cuaca diketahui dan
+triase inspeksi dengan tinjauan operator. Hasilnya belum membuktikan efektivitas
+deteksi kerusakan, kesiapan produksi, hubungan sebab-akibat, atau keuntungan finansial.
+Paket akhir mata kuliah juga masih memerlukan slide final dan catatan kontribusi nyata
+setiap anggota.
+
+## Peta bukti terhadap rubrik
+
+| Kriteria rubrik | Bobot | Bukti dalam notebook | Batasan yang masih berlaku |
 |---|---:|---|---|
-| 1. Problem formulation / suitability | 10 | Sections 1-2: task, horizon 0, stakeholder, target/unit, data dimensions, source/version and ethics; registry/uniqueness/non-UTS confirmed by team | Archive registry evidence; original plant owner and physical units not identified by retrieved metadata; source rights require team verification |
-| 2. Data quality / preparation | 15 | Sections 3-4: schema, missing values, keys, types, invalids, gaps, coverage, safe join, development target/scale/outlier audit and row-flow | Original scale retained, no unverified correction; observed-row eligibility does not reconstruct missing generation |
-| 3. EDA / features | 10 | Sections 5-6: distributions, correlations, time profiles, inverter spread, temperature gap, one-hot identities, train-fold imputation/scaling | No ablation claim; correlated and mechanically linked features complicate interpretation |
-| 4. Baseline / candidates | 15 | Sections 7-8: mean baseline, linear, Ridge, RF and GB on same full-data chronological folds | Pooled mean is a minimal benchmark; linear additive representation has no plant-by-weather interactions, so comparison does not prove general algorithm superiority |
-| 5. Validation / tuning / selection | 20 | Sections 7-10: grouped-date CV, top-two ranking, >=2 hyperparameters each, search spaces, best params, runtime, default/tuned comparison, pre-test selection lock | Four sampled ensemble configurations is a limited systematic search, not global optimization; CV reused for ranking/search is optimistic |
-| 6. Interpretation / insights / implications | 15 | Sections 10-13: diagnostics, plant-level errors, permutation attribution, four findings and two feasible recommendations, risk/limits | Horizon 0 is not next-day forecasting; no fault labels, causal effect, ROI, fault precision/recall or confirmed false-alarm claims |
-| 7. Reproducibility / quality | 5 | Section 14: exact local files/hashes, relative paths, imports, versions, seeds, computation checks, visible outputs | Execution result and artifact verification recorded below; reviewer must install listed dependencies in selected kernel |
-| 8. Presentation / teamwork / ownership | 10 | Group identities and interview/submission reminders; reusable outputs exported | Slides, actual contributions, panel participation and individual interview ownership remain outside notebook execution |
+| 1. Formulasi masalah dan kesesuaian | 10 | Bagian 1–2 menjelaskan tugas, horizon 0, pemangku kepentingan, target, dimensi data, sumber, versi, dan etika | Pemilik pembangkit dan satuan fisik tidak tersedia dalam metadata; hak penggunaan sumber perlu diverifikasi kelompok |
+| 2. Kualitas dan persiapan data | 15 | Bagian 3–4 mencakup skema, nilai hilang, kunci, tipe, nilai tidak valid, celah waktu, cakupan, penggabungan aman, skala target, dan alur baris | Skala asli dipertahankan tanpa koreksi yang tidak terverifikasi; observasi yang hilang tidak direkonstruksi |
+| 3. EDA dan fitur | 10 | Bagian 5–6 memuat distribusi, korelasi, profil waktu, variasi inverter, selisih suhu, dan rekayasa fitur | Tidak ada klaim ablasi; fitur yang berkorelasi dan saling terkait membatasi interpretasi |
+| 4. Pembanding dan kandidat | 15 | Bagian 7–8 membandingkan rata-rata gabungan, rata-rata per pembangkit, Regresi Linear, Ridge, Random Forest, dan Gradient Boosting pada fold kronologis yang sama | Pembanding per pembangkit adalah analisis tambahan setelah data pengujian pernah dilihat; model linear aditif tidak memiliki interaksi pembangkit–cuaca |
+| 5. Validasi, penyetelan, dan seleksi | 20 | Bagian 7–10 memakai CV berdasarkan tanggal, dua model terbaik, sedikitnya dua hiperparameter per model, ruang pencarian, parameter terbaik, perbandingan default–tuned per fold, simpangan baku sampel, dan kunci seleksi sebelum pengujian | Empat konfigurasi per ensemble merupakan pencarian terbatas; pemakaian CV untuk ranking dan pencarian dapat optimistis; eksekusi sekarang adalah reproduksi setelah data pengujian pernah dilihat |
+| 6. Interpretasi, temuan, dan implikasi | 15 | Bagian 10–13 memuat diagnostik, galat per pembangkit, permutation importance, empat temuan, dua rekomendasi, risiko, dan keterbatasan | Horizon 0 bukan prediksi hari berikutnya; tidak tersedia label kerusakan, ROI, precision/recall kerusakan, atau alarm palsu terverifikasi |
+| 7. Reproduksibilitas dan kualitas | 5 | Bagian 14 mencatat file, hash, path relatif, versi, seed, pemeriksaan komputasi, dan keluaran terlihat | Penilai perlu memasang dependensi pada kernel yang dipilih |
+| 8. Presentasi, kerja tim, dan kepemilikan | 10 | Identitas kelompok serta pengingat presentasi dan submission tersedia; keluaran dapat dipakai untuk slide | Slide, kontribusi aktual, partisipasi panel, dan penguasaan materi saat wawancara berada di luar eksekusi notebook |
 
-## Technical review decisions
+## Keputusan teknis utama
 
-1. Whole dates, not panel rows, define holdout and folds. All plants/inverters on each date share the partition. Training must end before validation/test starts. Validation IDs are checked as a subset of training IDs; missing inverter coverage is reported rather than assumed identical.
-2. Target/proxies are explicitly excluded from feature lists. Every imputer, encoder and scaler belongs to a per-fold pipeline. No target imputation, IQR target clipping or backward-fill is used.
-3. Test is first predicted only after candidate ranking, tuning, final choice and OOF alert thresholds have been frozen in `outputs/selection_lock.json`. Post-selection test interpretation is descriptive; it does not alter model/thresholds.
-4. DC/AC ratios differ substantially between plants. Units are not silently converted; raw-scale pooled MAE is explicitly a numerical benchmark, with plant-level metrics and development-mean normalization. It is not a shared physical or financial loss.
-5. Daytime means irradiation > 0, not astronomically verified daylight. Very small positive sensor readings can include unusual clock times; the prototype minimum expected-output gate mitigates low-output alerts but does not validate the sensor clock or a new daylight threshold.
-6. Per-file missing cells and missing *intervals* are distinct. Generation gaps, sensor gaps, left-join failures and eligibility exclusions are all recorded. A high match percentage alone is not complete time coverage.
-7. Three consecutive 15-minute observations span 30 minutes between timestamps and represent three interval readings. Timestamp gaps reset streaks; each streak crossing 3 creates one review episode. Alert rate is not a measured false-alarm rate.
-8. Source metadata is public Kaggle version 1, uploader Ani Kannal. Original facility owner and physical units are not substantiated; licensing is recorded verbatim without treating it as unrestricted reuse. Exact source files remain on disk despite Git ignore rules.
+1. Pembagian holdout dan fold menggunakan tanggal utuh. Semua pembangkit dan inverter
+   pada tanggal yang sama berada dalam partisi yang sama. Pelatihan selalu berakhir
+   sebelum validasi atau pengujian dimulai.
+2. Target dan proksinya tidak digunakan sebagai fitur. Imputer, encoder, dan scaler
+   dipasang ulang di dalam pipeline setiap fold. Target tidak diimputasi, dipotong
+   dengan IQR, atau diisi menggunakan data masa depan.
+3. Pemilihan awal model, fitur, parameter, dan ambang alert dikunci sebelum prediksi
+   pengujian pertama. Kunci awal tersedia dalam `outputs/initial_selection_lock.json`.
+   Eksekusi saat ini mereproduksi keputusan tersebut setelah data pengujian pernah dilihat.
+4. Rasio DC/AC berbeda besar antar pembangkit. Notebook tidak melakukan konversi satuan
+   tanpa dasar. MAE gabungan pada skala asli disertai metrik per pembangkit dan
+   normalisasi terhadap rata-rata development.
+5. Siang didefinisikan sebagai irradiation lebih besar dari nol, bukan berdasarkan
+   perhitungan astronomis. Nilai sensor positif yang sangat kecil dapat muncul pada
+   jam yang tidak lazim.
+6. Nilai sel yang hilang berbeda dari interval waktu yang hilang. Celah pembangkitan,
+   celah sensor, kegagalan penggabungan, dan eksklusi kelayakan dicatat terpisah.
+7. Tiga observasi berturut-turut dengan interval 15 menit membentang 30 menit antar
+   timestamp. Celah timestamp mengatur ulang streak. Alert adalah episode untuk
+   tinjauan operator, bukan kerusakan yang telah dikonfirmasi.
+8. Metadata sumber mencatat dataset Kaggle publik versi 1 dengan pengunggah Ani Kannal.
+   Pemilik fasilitas, satuan fisik, dan lisensi penggunaan ulang yang tidak terbatas
+   tidak dapat disimpulkan dari metadata tersebut.
 
-## Result interpretation
+## Penguatan pembanding dan penjelasan statistik
 
-The development ranking chooses Gradient Boosting and Random Forest for tuning. Four configurations per model are evaluated on the same five grouped-date folds, using all eligible training rows. RF's best configuration uses 100 trees, depth 20, leaf size 2 and max_features=1.0. Its CV MAE changes from 294.844 to 290.620 (1.433% improvement). GB's sampled search worsens CV MAE from 294.003 to 354.049; the default GB remains eligible in final selection. The lower-CV-MAE rule selects tuned RF; the small difference is not claimed statistically significant relative to fold variation.
+`PlantMeanRegressor` mempelajari rata-rata target setiap pembangkit hanya dari bagian
+pelatihan pada masing-masing fold. Kategori yang belum dikenal menggunakan rata-rata
+gabungan pelatihan. Pembanding ini diuji pada lima fold dan baris yang sama tanpa
+memilih ulang model final.
 
-Test covers 11-17 June 2020 (16,588 eligible rows across 7 days). Pooled MAE is about 196.019, RMSE 502.776 and R² 0.978851. Crucially, Plant 1 R² is about 0.964396 and Plant 2 R² is 0.390257. MAE divided by the development plant mean is about 5.04% versus 23.08%; Plant 2's lower absolute-unit MAE does not imply greater reliability. The pooled R² is insufficient as a deployment argument. Further investigation of Plant 2's zero-output mismatches is appropriate, but without labels it cannot identify cause or fault accuracy.
+Rata-rata per pembangkit menghasilkan CV MAE 1.963,493 dan MAE pengujian 1.661,945.
+Rata-rata gabungan menghasilkan CV MAE 3.349,278 dan MAE pengujian 3.070,496. Model final
+menurunkan MAE pengujian sebesar 88,205% terhadap pembanding per pembangkit dan sekitar
+93,62% terhadap pembanding rata-rata gabungan. Setiap klaim penurunan MAE harus selalu
+menyebut pembandingnya. Perbandingan ini bersifat pelengkap karena ditambahkan setelah
+data pengujian pernah diperiksa dan tidak boleh disebut evaluasi independen baru.
 
-Permutation sensitivity is largest for plant identity because of the scale difference; permuting plant independently from inverter creates inconsistent identity combinations. Irradiation and its square share information. These numbers are diagnostics, not operational interventions or causal effects. Residual persistence (contiguous within-inverter lag-one correlations about 0.596 and 0.771) and error extremes are disclosed. The proposed pilot retains human review and requires engineering verification and inspection outcomes.
+Seluruh simpangan baku pada tabel laporan dihitung sebagai simpangan baku sampel dengan
+`ddof=1`. Kolom mentah `std_test_mae` dari scikit-learn tetap memakai `ddof=0`, sehingga
+laporan menghitung ulang nilai dari skor setiap fold. Fold diberi bobot sama dalam
+fungsi objektif, sedangkan bobot setiap baris development tidak persis sama karena ukuran
+fold berbeda. Simpangan baku bukan galat baku, interval kepercayaan, atau bukti
+signifikansi karena hanya terdapat lima fold dengan jendela pelatihan bertumpang tindih.
 
-## Execution history and review integrity
+Model linear menggunakan one-hot pembangkit sehingga dapat memiliki intersep berbeda,
+tetapi belum mempunyai kemiringan cuaca–daya yang berbeda untuk setiap pembangkit.
+Model linear terpisah per pembangkit atau interaksi pembangkit–cuaca dapat menjadi
+pengembangan berikutnya dan harus dinilai melalui evaluasi baru.
 
-The first full attempt reached final model evaluation, then a recommendation-reporting string caused a syntax error. The string was corrected without changing features, split/folds, model candidates, hyperparameter spaces/budget, selection rule or alert policy. A subsequent clean-kernel attempt was terminated by the execution environment. The final verification reruns the unchanged analytical protocol from a fresh kernel. `outputs/initial_selection_lock.json` retains the original pre-test model/threshold choice; the artifact checker compares it with the reproduced choice so the reporting fix is not used to reselect on test results.
+## Interpretasi hasil model
 
-The authoring builder now parses every code cell before generating the notebook. Report-only Markdown explaining the observed results can be synchronized without changing executable cells or outputs; the sync helper rejects code differences. Final execution/verification status is recorded below only after it succeeds.
+Ranking development memilih Gradient Boosting dan Random Forest untuk disetel. Empat
+konfigurasi tiap model diuji pada lima fold berdasarkan tanggal dengan baris pelatihan
+yang sama. Konfigurasi Random Forest terbaik memakai 100 pohon, kedalaman 20,
+`min_samples_leaf=2`, dan `max_features=1.0`. CV MAE berubah dari 294,844 menjadi
+290,620 atau membaik 1,433%. Pencarian Gradient Boosting justru mengubah CV MAE dari
+294,003 menjadi 354,049, sehingga konfigurasi default tetap menjadi kandidat final.
+Aturan MAE CV terendah memilih Random Forest hasil penyetelan. Selisih yang kecil tidak
+diklaim signifikan secara statistik terhadap variasi antar-fold.
 
-An isolated dry-run of the corrected recommendation/alert-reporting cell, using saved predictions and a temporary output directory, passed before the full rerun reached that cell. It reported 3 prototype review episodes at Plant 1 and 10 at Plant 2 over 7 test days, and rendered the four-row evidence-to-action matrix. These are workload counts, not confirmed fault counts. The thresholds are deliberately provisional and may miss smaller or persistent underperformance; sensitivity cannot be established without labeled inspection records.
+Data pengujian mencakup 11–17 Juni 2020 dengan 16.588 baris yang memenuhi syarat pada tujuh hari.
+Plant 1 memiliki MAE 291,823 dan R² 0,964396, sedangkan Plant 2 memiliki MAE 104,683
+dan R² 0,390257. MAE terhadap rata-rata development pembangkit sekitar 5,04% untuk
+Plant 1 dan 23,08% untuk Plant 2. MAE absolut Plant 2 yang lebih kecil tidak berarti
+model lebih andal karena skala targetnya berbeda. R² gabungan tidak cukup sebagai
+dasar deployment.
 
-## Final verification - passed, 14 October 2026
+Permutation importance terbesar muncul pada identitas pembangkit karena perbedaan
+skala. Permutasi pembangkit secara terpisah dari inverter juga membentuk kombinasi
+identitas yang tidak konsisten. Irradiation dan kuadratnya berbagi informasi. Semua
+angka tersebut merupakan diagnostik, bukan estimasi efek sebab-akibat.
 
-- Fresh-kernel execution completed successfully: **32 cells, 15 executable cells, 0 cell errors**. Execution counts are consecutive; all outputs are stored in `SolarGuard.ipynb`.
-- End-to-end execution helper time: **630.1 seconds**; timed analysis inside the notebook: **622.5 seconds**. Reference Python: 3.12.10; exact package versions are in `requirements.txt` and `outputs/run_summary.json`. This was an equivalent local Python/Jupyter environment, not a claimed Google Colab run.
-- All **13 required analytical sections** are present, plus reproducibility/review. Notebook has **11 embedded figure outputs** and visible audit/model/reporting tables.
-- `scripts/review_notebook.py` passed: valid notebook schema, all code cells parse and are executed, no error outputs, all four CSV hashes match, correct top-two tuning, >=2 tuned parameters, chronological fold ordering, final selection consistent with CV, and final test MAE/RMSE/R² independently recomputed from saved predictions.
-- Initial and final selection locks match in model, features, estimator parameters and OOF alert thresholds. No test-driven model revision was introduced during the reporting fix or reproduction.
-- Corrected alert reporting succeeded in the full run: **3 and 10 review episodes** across 7 days; four evidence-supported findings and two recommendations are rendered.
-- Report-only Markdown was synchronized after execution; the sync helper confirmed that executable cell sources and their outputs were unchanged. Artifact SHA-256 is recorded in `outputs/artifact_review.json`.
+Korelasi residual lag satu pada observasi inverter yang berurutan sekitar 0,596 dan
+0,771. Prototype menghasilkan 3 episode tinjauan di Plant 1 dan 10 di Plant 2 selama
+tujuh hari pengujian. Jumlah tersebut adalah beban tinjauan, bukan jumlah kerusakan atau
+alarm palsu. Pilot diprioritaskan pada Plant 1 dengan pemeriksaan operator, sementara
+ketidaksesuaian output nol di Plant 2 perlu diselidiki tanpa mengubah model berdasarkan
+hasil pengujian.
 
-**Conclusion:** the notebook implements the required analytical workflow and has passing execution evidence. The remaining qualifications are source provenance/units/rights, limited tuning coverage and generalization, and external submission/teamwork obligations described above. The review does not certify full marks, operational fault detection or production deployment readiness.
+## Integritas eksekusi dan artefak
 
-`Group7_SolarGuard_Notebook.zip` is a notebook-only handoff containing the executed report, four exact CSVs, metadata, reporting evidence, requirements and helper scripts. It is intentionally distinct from the final course package `Group7_SolarGuard_PredictiveAnalytics.zip`, which still requires the final slides and confirmed actual member contributions.
+Percobaan penuh pertama mencapai evaluasi final, lalu gagal pada string pelaporan
+rekomendasi. Perbaikan hanya menyentuh pelaporan dan tidak mengubah fitur, split, fold,
+kandidat model, ruang dan anggaran penyetelan, aturan seleksi, atau kebijakan alert.
+Satu eksekusi kernel bersih berikutnya dihentikan lingkungan eksekusi. Verifikasi akhir
+kemudian menjalankan ulang protokol analitis yang sama dari kernel bersih hingga selesai.
 
-## Indonesian narrative revision - 14 October 2026
+Skrip pembuat notebook memeriksa sintaks setiap sel kode sebelum membuat notebook.
+Sinkronisasi Markdown menolak perubahan pada sel kode dan mempertahankan keluaran.
+Pemeriksa artefak menghitung ulang rata-rata training tiap fold dari empat CSV asli,
+menghitung ulang metrik dari prediksi, memeriksa kunci seleksi, dan memastikan prediksi
+model final sama dengan snapshot sebelum penguatan dalam toleransi numerik.
 
-At the team's request, all 17 Markdown cells and all 11 rendered Markdown explanations were translated into Indonesian. Section titles, methodological reasoning, result interpretation, recommendations and limitations now use Indonesian consistently; dataset/model identifiers and necessary technical names are retained. The authoring source was updated so rebuilding or rerunning keeps the same language.
+Verifikasi terakhir pada 14 Oktober 2026 berhasil dengan waktu helper 571,0 detik dan
+waktu analisis notebook 562,3 detik. Python acuan adalah 3.12.10; versi paket tepat
+tersedia di `requirements.txt`. Lingkungan yang digunakan adalah Python/Jupyter lokal,
+bukan Google Colab. Ringkasan eksekusi tersedia di `outputs/run_summary.json`, sedangkan
+hasil pemeriksaan terstruktur tersedia di `outputs/artifact_review.json`.
 
-Ten code cells changed only in the arguments of the narrative-display helper `note()`. AST comparison verified that analytical computation outside those narrative arguments is unchanged, and every numeric value in the translated Markdown outputs was preserved. Existing execution counts, predictions, metrics, tables and figures remain intact. Models were not refitted for this editorial revision. The translation checks are stored in `outputs/language_revision.json`; artifact verification and the notebook-only ZIP are refreshed afterward.
+Hash SHA-256 notebook yang diverifikasi adalah
+`9b9573553a5f59ee6e4560fffa55e028519dd589ffaef63a7b2aee2abaa8e613`.
+Paket notebook dibuat dari snapshot yang sama, lulus pemeriksaan CRC, dan diperiksa
+kesamaan byte setiap file terhadap workspace. `Group7_SolarGuard_Notebook.zip` adalah
+paket serah-terima notebook, berbeda dari paket akhir mata kuliah
+`Group7_SolarGuard_PredictiveAnalytics.zip`.
 
-## Evidence still requiring the team
+## Konsistensi bahasa
 
-- Archive registry evidence with group/member details; registration, uniqueness and non-UTS have been confirmed by the team.
-- Verification of original-source provenance, source-use/distribution terms, physical units and equipment ratings. If the lecturer rejects suitability, dataset replacement would require a new analysis.
-- Actual per-member contribution record; `CONTRIBUTIONS.md` intentionally does not invent contributions.
-- Final slides and rehearsal, stakeholder-panel preparation/participation, interview readiness, full ZIP and RISE upload before 19 October 2026 at 20.00 WIB.
+Seluruh 17 sel Markdown dan 11 penjelasan Markdown yang dihasilkan notebook menggunakan
+bahasa Indonesia. Judul bagian, alasan metodologis, interpretasi hasil, rekomendasi,
+dan keterbatasan telah diseragamkan. Nama dataset, model, metrik, parameter, kolom,
+fungsi, serta istilah teknis yang diperlukan tetap dipertahankan agar cocok dengan
+kode dan artefak.
 
-The notebook is a defensible proof-of-concept for contemporaneous output estimation and operator-reviewed inspection triage. It does not establish fault detection effectiveness, production readiness or financial return.
+Perubahan bahasa pada notebook hanya menyentuh Markdown dan argumen helper narasi
+`note()`. Pemeriksaan AST memastikan komputasi analitis di luar narasi tidak berubah,
+dan seluruh angka pada keluaran tetap sama. Bukti pemeriksaan tersimpan dalam
+`outputs/language_revision.json`.
+
+## Bukti yang masih harus dilengkapi kelompok
+
+- Arsip bukti registrasi yang mencantumkan kelompok dan anggota.
+- Verifikasi sumber asli, ketentuan penggunaan dan distribusi, satuan fisik, serta
+  rating peralatan. Jika dosen menolak kesesuaian dataset, penggantian dataset akan
+  memerlukan analisis baru.
+- Catatan kontribusi nyata setiap anggota. `CONTRIBUTIONS.md` sengaja tidak mengarang
+  pembagian kerja.
+- Slide final, latihan presentasi, persiapan panel pemangku kepentingan, kesiapan
+  wawancara, ZIP lengkap, dan unggahan RISE sebelum 19 Oktober 2026 pukul 20.00 WIB.

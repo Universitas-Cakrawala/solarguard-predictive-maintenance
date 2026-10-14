@@ -1,6 +1,8 @@
 """Create the notebook-only handoff, excluding credentials and unrelated project files."""
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
+import hashlib
+import json
 import nbformat
 
 root = Path(__file__).resolve().parents[1]
@@ -8,6 +10,8 @@ nb = nbformat.read(root / 'SolarGuard.ipynb', as_version=4)
 assert all(c.execution_count is not None for c in nb.cells if c.cell_type == 'code')
 assert not any(o.output_type == 'error' for c in nb.cells if c.cell_type == 'code' for o in c.outputs)
 assert (root / 'outputs' / 'artifact_review.json').exists()
+review = json.loads((root / 'outputs' / 'artifact_review.json').read_text())
+assert review['notebook_sha256'] == hashlib.sha256((root / 'SolarGuard.ipynb').read_bytes()).hexdigest(), 'Review is stale; rerun artifact verification'
 files = [root / name for name in ['SolarGuard.ipynb', 'README.md', 'requirements.txt',
     'DATA_SOURCE.md', 'CONTRIBUTIONS.md', 'NOTEBOOK_REVIEW.md']]
 files += sorted((root / 'data').glob('*.csv'))
@@ -23,5 +27,8 @@ with ZipFile(archive) as package:
     names = package.namelist()
     assert sum(n.startswith('data/') and n.endswith('.csv') for n in names) == 4
     assert 'SolarGuard.ipynb' in names and 'NOTEBOOK_REVIEW.md' in names
+    for path in files:
+        relative = path.relative_to(root).as_posix()
+        assert package.read(relative) == path.read_bytes(), f'Archive differs from workspace: {relative}'
 print(f'Notebook-only bundle: {archive.name}; {len(files)} files; {archive.stat().st_size:,} bytes')
 print('This is not the complete course-submission ZIP: final slides and actual member contributions remain pending.')
