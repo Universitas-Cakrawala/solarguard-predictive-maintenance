@@ -1,0 +1,145 @@
+# ==============================================================================
+# SolarGuard Predictive Maintenance - .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Virtual Environments (Wajib di-ignore: berukuran ratusan MB dan lokal)
+# ------------------------------------------------------------------------------
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# ------------------------------------------------------------------------------
+# 2. Python Cache & Bytecode
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ------------------------------------------------------------------------------
+# 3. Jupyter Notebook Checkpoints & Temporary Files
+# ------------------------------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+*-checkpoint.ipynb
+
+# ------------------------------------------------------------------------------
+# 4. Keamanan & Kredensial (SANGAT PENTING: Jangan bocorkan API key / token)
+# ------------------------------------------------------------------------------
+kaggle.json
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials/
+secrets/
+
+# ------------------------------------------------------------------------------
+# 5. Dataset, Arsip & Data Cache
+# ------------------------------------------------------------------------------
+# Arsip kompresi download dataset
+*.zip
+*.tar.gz
+*.rar
+*.7z
+archive/
+
+# Direktori data (raw/processed/interim)
+# Catatan: Struktur folder dijaga via .gitkeep
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+
+# Dataset CSV/Parquet/Feather berukuran besar
+*.parquet
+*.feather
+*.h5
+*.sqlite3
+
+# (Opsional) Jika dataset di-download langsung ke root folder:
+solar-power-generation-data/
+*.csv
+
+# ------------------------------------------------------------------------------
+# 6. Model Machine Learning & Checkpoint Bobot (Binary Artifacts)
+# ------------------------------------------------------------------------------
+# File biner model ML tidak efisien di Git dan membebani commit history
+models/*.pkl
+models/*.joblib
+models/*.onnx
+models/*.pt
+models/*.pth
+models/*.bin
+*.pkl
+*.joblib
+
+# ------------------------------------------------------------------------------
+# 7. Experiment Tracking, Logs & Testing Cache
+# ------------------------------------------------------------------------------
+*.log
+logs/
+mlruns/
+wandb/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ------------------------------------------------------------------------------
+# 8. OS & Editor / IDE Config
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# IDE & Editor (VS Code / JetBrains PyCharm)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# 9. Dokumen Brief / Panduan Tugas Kuliah & Scratch Prompts
+# ------------------------------------------------------------------------------
+# PDF brief mata kuliah tidak wajib di-push ke GitHub deliverable
+Predictive Analytics Group Project Brief and Assessment Rubric Revised.pdf
+planning/
+scratch/
