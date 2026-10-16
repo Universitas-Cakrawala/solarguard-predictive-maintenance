@@ -2,6 +2,19 @@
 
 Weather-conditioned solar output estimation for maintenance triage. The task is contemporaneous regression (horizon 0) at known inverters, not validated failure prediction or next-day forecasting.
 
+## Anggota Kelompok
+
+| No | Nama | NIM | Peran |
+|:--:|---|:--:|---|
+| 1 | Titanio Yudista | 24120500031 | Ketua |
+| 2 | Farisyah Aulia Hanum | 24120500027 | Anggota |
+| 3 | Sayyid Abdul Aziz Haidar | 24120500005 | Anggota |
+
+## Slide Presentation
+
+- **Home**: https://solarguard-slide-presentation.vercel.app/
+- **Slide**: https://solarguard-slide-presentation.vercel.app/s/solarguard
+
 ## Run the notebook
 
 Use Python 3.12 and the versions in `requirements.txt`. The reference execution uses an existing Python environment; `.venv/` may require installation before use.
