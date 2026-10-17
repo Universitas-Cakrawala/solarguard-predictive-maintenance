@@ -14,6 +14,7 @@ Weather-conditioned solar output estimation for maintenance triage. The task is 
 
 - **Home**: https://solarguard-slide-presentation.vercel.app/
 - **Slide**: https://solarguard-slide-presentation.vercel.app/s/solarguard
+- **Repository**: https://github.com/Universitas-Cakrawala/solarguard-predictive-maintenance-slide
 
 ## Run the notebook
 
