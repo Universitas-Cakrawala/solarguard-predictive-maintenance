@@ -44,7 +44,7 @@
     "Gradient Boosting",
     "Random Forest"
   ],
-  "run_seconds": 366.353051555001,
+  "run_seconds": 502.63755548100016,
   "environment": {
     "numpy": "2.5.2",
     "pandas": "3.0.5",
@@ -75,5 +75,5 @@
     "consistent sample SD for tuning comparison": true,
     "supplemental baseline excluded from model selection": true
   },
-  "utc_completed": "2026-10-15T10:39:13.930252+00:00"
+  "utc_completed": "2026-10-18T03:19:16.602484+00:00"
 }
