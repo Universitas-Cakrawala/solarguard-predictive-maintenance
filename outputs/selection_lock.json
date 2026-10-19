@@ -39,7 +39,7 @@
   "thresholds": [
     {
       "PLANT_ID": "4135001",
-      "gap_threshold": 1576.9961615195143,
+      "gap_threshold": 1576.9961615195136,
       "min_expected": 2208.3609225845125,
       "persistence_intervals": 3,
       "oof_rows": 22869,
@@ -55,7 +55,7 @@
     }
   ],
   "locked_before_test_prediction": true,
-  "utc_lock_time": "2026-10-18T03:18:57.959063+00:00",
+  "utc_lock_time": "2026-10-19T08:55:42.678337+00:00",
   "evaluation_status": "reproduction_after_test_exposure",
   "supplemental_baseline_used_for_selection": false,
   "original_lock_time": "2026-10-14T11:57:36.679987+00:00"
