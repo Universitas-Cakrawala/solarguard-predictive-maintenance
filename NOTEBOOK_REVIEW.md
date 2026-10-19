@@ -6,7 +6,6 @@ Peninjauan ini membandingkan bukti dalam notebook dengan seluruh 11 halaman
 `Predictive Analytics Group Project Brief and Assessment Rubric Revised.pdf`, terutama
 ketentuan notebook dan model regresi minimum pada halaman 4–5, validasi, penyetelan,
 temuan, dan reproduktibilitas pada halaman 6, serta rubrik pada halaman 10–11.
-Implementasi mengikuti `planning/PLAN.md`.
 
 Dokumen ini membedakan bukti yang telah diterapkan dalam notebook dari persyaratan
 administratif dan pelaksanaan kelompok. Dokumen ini bukan prediksi nilai. Pada
